@@ -1,0 +1,6 @@
+#!/bin/bash -v
+
+set -e
+
+godec -x "resample_sub.override.resample.target_sampling_rate=8000" resample_test.json
+

@@ -1,0 +1,60 @@
+{
+  "global_opts":
+  {
+    "MODEL_ROOT": "."
+  },
+  "file_feeder":
+  {
+    "verbose": "false",
+    "type": "FileFeeder",
+    "control_type": "single_on_startup",
+    "source_type": "analist",
+    "input_file": "data/resample.analist",
+    "feed_realtime_factor": "10000",
+    "wave_dir": "data",
+    "wave_extension": "wav",
+    "audio_chunk_size": 800000,
+    "time_upsample_factor": "1",
+    "inputs": { },
+    "outputs":
+    {
+      "output_stream": "raw_audio",
+      "conversation_state": "convstate"
+    }
+  },
+  "resample_sub":
+  {
+    "verbose": "false",
+    "type": "SubModule",
+    "file": "$(MODEL_ROOT)/resample_sub.json",
+    "inputs": { 
+      "convstate": "convstate",
+      "raw_audio": "raw_audio"
+    },
+    "outputs":
+    {
+      "preproc_audio": "preproc_audio"
+    },
+    "override": 
+    {
+      "resample":
+      {
+        "target_sampling_rate": "fillmein"
+      },
+      "dummy_comp": "#dummy_comp"
+    }
+  },
+  "file_writer":
+  {
+    "verbose": "false",
+    "type": "FileWriter",
+    "control_type": "single_on_startup",
+    "input_type": "audio",
+    "output_file_prefix": "data/_resampled_",
+    "inputs": { 
+      "conversation_state": "convstate",
+      "input_stream": "preproc_audio"
+    },
+    "outputs": { }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  /* Testing multiline comment!
+   * Bla bla bla
+   */
+  "java":
+  {
+    "verbose": "false",
+    "type": "Java",
+    "class_name": "com/bbn/godec/regression/TextTransform",
+    "class_constructor_param": "hello", // Single-line comment
+    "expected_inputs": "NbestDecoderMessage_in",
+    "expected_outputs": "NbestDecoderMessage_out",
+    "inputs":
+    {
+      "NbestDecoderMessage_in": "NbestDecoderMessage_in"
+    },
+    "outputs":
+    {
+      "NbestDecoderMessage_out": "NbestDecoderMessage_out"
+    }
+  } 
+}

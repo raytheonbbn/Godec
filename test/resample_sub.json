@@ -1,0 +1,24 @@
+{
+  "resample":
+  {
+    "verbose": "false",
+    "type": "AudioPreProcessor",
+    "zero_mean": "true",
+    "preemphasis_factor": "0.0",
+    "target_sampling_rate": "fillmein",
+    "max_out_channels": "1",
+    "output_scale": "1.0",
+    "inputs": { 
+      "conversation_state": "convstate",
+      "streamed_audio": "raw_audio"
+    },
+    "outputs":
+    {
+      "streamed_audio_0": "preproc_audio"
+    }
+  },
+  "dummy_comp":
+  {
+    "type": "dontexist"
+  }
+}
