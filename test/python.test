@@ -1,0 +1,18 @@
+#!/bin/bash -v
+
+set -e
+
+if [[ -z "$PYTHON_HOME" ]]
+then
+  echo "Need to set PYTHON_HOME variable!"
+  exit -1 
+fi
+
+
+if [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
+  PYTHON_HOME_CYGWIN=$(cygpath -m $PYTHON_HOME)
+  OVERRIDE="-x python.python_executable=$PYTHON_HOME_CYGWIN/python.exe"
+fi
+
+godec $OVERRIDE python_test.json
+$PYTHON_HOME/bin/python3 python_test_compare_matrix.py

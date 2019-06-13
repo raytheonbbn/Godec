@@ -1,0 +1,42 @@
+#!/bin/bash
+# Installation:
+#   cd my_gitproject
+#   wget -O pre-commit.sh http://tinyurl.com/mkovs45
+#   ln -s ../../pre-commit.sh .git/hooks/pre-commit
+#   chmod +x pre-commit.sh
+
+
+RETURN=0
+GITROOT=`git rev-parse --show-toplevel`
+ASTYLERC="$GITROOT/misc/astylerc "
+
+if [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
+ASTYLE=$GITROOT/misc/Astyle.exe
+ASTYLERC=`cygpath -w $ASTYLERC | sed 's%\\\\%\/%g'`
+else
+ASTYLE=$GITROOT/misc/astyle
+fi
+OPTIONS=" --options=$ASTYLERC "
+
+if [ $? -ne 0 ]; then
+  echo "[!] astyle not installed. Unable to check source file format policy." >&2
+  exit 1
+fi
+
+FILES=`git diff --cached --name-only --diff-filter=ACMR | grep -E "\.(c|cc|cpp|h)$"`
+for FILE in $FILES; do
+  #	echo "cat $FILE | $ASTYLE $OPTIONS | diff -s $FILE - | grep '<'"
+  if [[ $FILE == *""*  ]]; then
+    AOUT=`$ASTYLE $OPTIONS < $FILE | diff --strip-trailing-cr -s $FILE - | grep "<"`
+    if [ ! -z "$AOUT" ]; then
+      echo "[!] $FILE does not respect the agreed Google-style format defined in $ASTYLERC. Offending lines:" >&2
+      echo "$AOUT"
+
+      echo To format the file accordingly run:
+      echo "$ASTYLE $OPTIONS $FILE"
+      RETURN=1
+    fi
+  fi
+done
+
+exit $RETURN

@@ -1,0 +1,87 @@
+{
+  "file_feeder":
+  {
+    "verbose": "false",
+    "type": "FileFeeder",
+    "control_type": "single_on_startup",
+    "source_type": "numpy_npz",
+    "keys_list_file": "python_test.npz_keys",
+    "feature_chunk_size": "1000000",
+    "inputs": { },
+    "outputs":
+    {
+      "output_stream": "features",
+      "conversation_state": "convstate"
+    }
+  },
+  "python":
+  {
+    "verbose": "false",
+    "type": "Python",
+    "python_executable": "/d4m/ears/releases/bbn-decoder-cots/miniconda3/bin/python3",
+    "script_file_name": "python_test",
+    "python_path": "python_dummy_module",
+    "class_name": "PythonTest",
+    "class_constructor_param": "2.0", // This test multiplies features by 2.0
+    "expected_inputs": "features",
+    "expected_outputs": "features",
+    "inputs":
+    {
+      "features": "features"
+    },
+    "outputs":
+    {
+      "features": "times_two_features"
+    }
+  },
+  "feat_norm":
+  {
+    "verbose": "false",
+    "type": "FeatureNormalizer",
+    "feature_size": "10",
+    "processing_mode": "LowLatency",
+    "update_stats_every_n_frames": "100",
+    "normalization_type": "covariance",
+    "norm_means": "true",
+    "norm_vars": "true",
+    "covariance_type": "diagonal",
+    "decay_num_frames": "-1",
+    "inputs":
+    {
+      "features": "features",
+      "conversation_state": "convstate"
+    },
+    "outputs":
+    {
+      "features": "norm_features"
+    }
+  },
+  "times_two_writer":
+  {
+    "verbose": "false",
+    "type": "FileWriter",
+    "control_type": "single_on_startup",
+    "input_type": "features",
+    "npz_file": "python_test_times_two_feats.npz",
+    "inputs": 
+    { 
+      "input_stream": "times_two_features",
+      "conversation_state": "convstate"
+    },
+    "outputs": {}
+  },
+  "norm_writer":
+  {
+    "verbose": "false",
+    "type": "FileWriter",
+    "control_type": "single_on_startup",
+    "input_type": "features",
+    "npz_file": "python_test_norm_feats.npz",
+    "inputs": 
+    { 
+      "input_stream": "norm_features",
+      "conversation_state": "convstate"
+    },
+    "outputs": {}
+  }
+}

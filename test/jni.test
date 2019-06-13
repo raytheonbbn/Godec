@@ -1,0 +1,4 @@
+#!/bin/bash -v
+
+set -e
+java -Djava.library.path="$JAVA_LIBRARY_PATH" -cp "$JAVA_CLASSPATH" com.bbn.godec.regression.JNITest jni_test.json "ConversationStateDecoderMessage,BinaryDecoderMessage,AudioDecoderMessage,FeaturesDecoderMessage,NbestDecoderMessage,JsonDecoderMessage"
