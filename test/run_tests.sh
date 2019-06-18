@@ -1,8 +1,6 @@
 #!/bin/bash -v
 set -e
 
-windows_skipped_tests="python.test"
-
 if [ "$#" -ne 1 ]; then
     echo "Usage: run_tests.sh <installation directory>"
     exit -1
@@ -10,11 +8,23 @@ fi
 
 . $1/env.sh
 
+
+# Set to a semicolon-separated list of tests to be skipped
+skipped_tests=""
+# Set to test in order to run just that one
+only_test=""
+
+if [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
+    skipped_tests="$skipped_tests;"
+fi
+
 for reg_test in *.test; do
-    if [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
-      if [[ $windows_skipped_tests == *"$reg_test"* ]]; then
-        continue;
-      fi
+    if [ ! -z $only_test ] && [ $only_test != "$reg_test" ]; then
+      continue;
+    fi
+
+    if [[ $skipped_tests == *"$reg_test"* ]]; then
+      continue;
     fi
     echo "############################ Starting $reg_test ##########################"
     time ./$reg_test

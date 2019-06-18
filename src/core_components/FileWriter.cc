@@ -153,9 +153,18 @@ void FileWriterComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
         WriteJsonOutput(jsonMsg, convStateMsg, msgBlock, mCurrentFWH->mJsonOutputFormat, mCurrentFWH->json_output_writer);
     } else if (mCurrentFWH->mInputType == Features) {
         auto featsMsg = msgBlock.get<FeaturesDecoderMessage>(SlotInput);
-        std::vector<size_t> shape{(size_t)featsMsg->mFeatures.rows(), (size_t)featsMsg->mFeatures.cols()};
-        Matrix featsT = featsMsg->mFeatures.transpose();
-        cnpy::npz_save(mCurrentFWH->mFeaturesNpz, featsMsg->mUtteranceId, featsT.data(), shape, "a");
+        if (mCurrentFWH->mFeaturesAccum.cols() == 0) {
+            mCurrentFWH->mFeaturesAccum = featsMsg->mFeatures;
+        } else {
+            mCurrentFWH->mFeaturesAccum.conservativeResize(mCurrentFWH->mFeaturesAccum.rows(), mCurrentFWH->mFeaturesAccum.cols()+featsMsg->mFeatures.cols());
+            mCurrentFWH->mFeaturesAccum.rightCols(featsMsg->mFeatures.cols()) = featsMsg->mFeatures;
+        }
+        if (convStateMsg->mLastChunkInUtt) {
+            std::vector<size_t> shape{(size_t)mCurrentFWH->mFeaturesAccum.rows(), (size_t)mCurrentFWH->mFeaturesAccum.cols()};
+            Matrix featsT = mCurrentFWH->mFeaturesAccum.transpose();
+            cnpy::npz_save(mCurrentFWH->mFeaturesNpz, featsMsg->mUtteranceId, featsT.data(), shape, "a");
+            mCurrentFWH->mFeaturesAccum = Matrix(0,0);
+        }
     }
 }
 void FileWriterComponent::WriteJsonOutput(boost::shared_ptr<const JsonDecoderMessage> jsonMsg, boost::shared_ptr<const ConversationStateDecoderMessage> convMsg, const DecoderMessageBlock& msgBlock, std::string jsonOutputFormat, std::ofstream& json_output_writer) {

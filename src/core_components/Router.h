@@ -28,10 +28,11 @@ class RouterComponent : public LoopProcessor {
 
     int64_t mToRouteStreamOffset;
     std::vector<int64_t> mRoutedStreamOffsets;
+    std::vector<uint64_t> mAccumRouteIdx;
+    int mCurrentRouteIdx;
 
     // SAD Nbest router
     std::vector<DecoderMessage_ptr> mAccumToRouteBaseMsg;
-    std::vector<uint64_t> mAccumTop1;
     std::vector<uint64_t> mAccumAlignment;
     std::vector<bool> mAccumEndOfUtt;
     std::vector<std::string> mAccumUttId;
