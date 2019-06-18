@@ -40,6 +40,7 @@ class FileWriterHolder {
     std::string mFstPrefix;
     std::string mJsonOutputFormat;
     std::string mFeaturesNpz;
+    Matrix mFeaturesAccum;
 };
 
 

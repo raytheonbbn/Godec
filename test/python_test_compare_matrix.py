@@ -22,6 +22,7 @@ for uttId in orig_feats.files:
 
 godec_norm_feats = np.load("python_test_norm_feats.npz")
 accum_orig_feats = None
+highestMaxDiff = 0.0
 for uttId in orig_feats.files:
   if (accum_orig_feats is None):
     accum_orig_feats = orig_feats[uttId]
@@ -32,7 +33,11 @@ for uttId in orig_feats.files:
     std = np.std(accum_orig_feats[rowIdx]-mean,ddof=1)
     norm_orig = (orig_feats[uttId][rowIdx]-mean)/std
     maxDiff = np.max(np.abs(np.subtract(norm_orig,godec_norm_feats[uttId][rowIdx])))
+    highestMaxDiff = max(highestMaxDiff, maxDiff)
     if (maxDiff > 1E-06):
       sys.stderr.write("Different matrices for utt "+uttId+"\n")
       sys.stderr.flush()
       exit(-1)
+
+print("maxDiff= "+str(highestMaxDiff))
+
