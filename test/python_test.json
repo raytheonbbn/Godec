@@ -18,7 +18,7 @@
   {
     "verbose": "false",
     "type": "Python",
-    "python_executable": "/d4m/ears/releases/bbn-decoder-cots/miniconda3/bin/python3",
+    "python_executable": "will_be_set_from_the_outside",
     "script_file_name": "python_test",
     "python_path": "python_dummy_module",
     "class_name": "PythonTest",

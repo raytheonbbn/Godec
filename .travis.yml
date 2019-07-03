@@ -1,0 +1,20 @@
+os: linux
+dist: xenial
+language: cpp
+compiler:
+        - gcc
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - g++-7
+    - libeigen3-dev
+    - libboost1.58-all
+    - libasound2-dev
+    - python3-numpy
+    - maven
+script:
+        - wget http://www.cmake.org/files/v3.14/cmake-3.14.5-Linux-x86_64.tar.gz && tar xzf cmake-3.14.5-Linux-x86_64.tar.gz
+        - export PYTHON_HOME=/usr && export PATH=/usr/lib/jvm/java-8-openjdk-amd64/jre/bin:$PATH && export CXX=g++-7 && mkdir cmake-build && cd cmake-build && ../cmake-3.14.5-Linux-x86_64/bin/cmake -DPLATFORM=Linux -DCMAKE_INSTALL_PREFIX=../install ../ && make install && make test ARGS="-V"
+

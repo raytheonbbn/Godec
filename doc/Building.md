@@ -20,9 +20,7 @@ The Linux-based cmake version needs to be 3.12 or higher. Annoyingly many Linux 
 ### Linux
   Install the following packages:
 
-  `sudo apt-get install libboost-dev-all libeigen3-dev libasound2-dev openjdk-8-jdk maven icu`
-
-  Note, the default JDK that comes with a lot of systems is JDK 11, it does not work. Make sure the JDK 8 executables are the ones in your path for the compilation.
+  `sudo apt-get install libboost-dev-all libeigen3-dev libasound2-dev maven icu python3-numpy`
 
   `mkdir cmake-build`
 
