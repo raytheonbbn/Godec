@@ -15,9 +15,9 @@ Godec exhibits many traits desirable for such a framework:
 - Godec is low-latency, i.e. it is perfectly suitable for live stream processing.
 - Godec currently is compiled and tested on Linux, Android, Windows and Raspberry Pi.
 
-The Interspeech announcement paper for this open-source project [can be found here.](http://hopefully_accepted)
+<!-- The Interspeech announcement paper for this open-source project [can be found here.](http://hopefully_accepted) -->
 
-Also of interest might be [BBN's "Sage" framework that uses Godec](https://www.researchgate.net/publication/307889439_Sage_The_New_BBN_Speech_Processing_Platform), and a paper describing applications [that run on Godec.](https://www.researchgate.net/publication/319292616_Applications_of_the_BBN_Sage_Speech_Processing_Platform)
+Of interest might be [BBN's "Sage" framework that uses Godec](https://www.researchgate.net/publication/307889439_Sage_The_New_BBN_Speech_Processing_Platform), and a paper describing applications [that run on Godec.](https://www.researchgate.net/publication/319292616_Applications_of_the_BBN_Sage_Speech_Processing_Platform)
 
 ----
 
