@@ -1,7 +1,7 @@
 {
   "resample":
   {
-    "verbose": "false",
+    "verbose": "true",
     "type": "AudioPreProcessor",
     "zero_mean": "true",
     "preemphasis_factor": "0.0",

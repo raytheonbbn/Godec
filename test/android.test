@@ -1,0 +1,16 @@
+#!/bin/bash -v
+
+set -e
+
+adb push $GODEC_INSTALL_DIR/bin/* $ANDROID_NDK_HOME/sources/cxx-stl/llvm-libc++/libs/armeabi-v7a/libc++_shared.so android* data /data/local/tmp/
+adb shell "export LD_LIBRARY_PATH=/data/local/tmp && cd /data/local/tmp && ./godec -x \"file_feeder.verbose=true\" -x \"file_writer.verbose=true\" android_test.json"
+adb pull /data/local/tmp/data .
+ls data
+if [ -f data/_resampled_A.raw ]
+then
+  echo Test passed
+else
+  exit -1
+fi
+
+
