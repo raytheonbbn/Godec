@@ -10,9 +10,14 @@ fi
 
 
 # Set to a semicolon-separated list of tests to be skipped
-skipped_tests=""
+skipped_tests="android.test"
 # Set to test in order to run just that one
 only_test=""
+if [ -x "$(command -v adb)" ] 
+then
+  skipped_tests=""
+  only_test="android.test"
+fi
 
 if [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
     skipped_tests="$skipped_tests;"

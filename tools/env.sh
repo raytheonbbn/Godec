@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+export GODEC_INSTALL_DIR=$SCRIPT_DIR
 
 if [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
     export SCRIPT_DIR_WIN=`cygpath -m $SCRIPT_DIR`
