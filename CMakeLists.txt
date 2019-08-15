@@ -110,6 +110,7 @@ else()
 endif()
 
 include_directories(
+  BEFORE SYSTEM
   ${PROJECT_SOURCE_DIR}/src/include
   ${Boost_INCLUDE_DIR}
   ${Eigen3_INCLUDE_DIRS}
@@ -118,6 +119,10 @@ include_directories(
   ${ALSA_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIRS}
   ${GODEC_ADDITIONAL_INCLUDE_DIRS}
+  )
+
+link_directories(
+  ${GODEC_ADDITIONAL_LINKER_DIRS}
   )
 
 file(WRITE "${PROJECT_SOURCE_DIR}/src/include/godec/version.h" "#pragma once\n")
@@ -208,4 +213,4 @@ else()
         file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/.git/hooks) 
 	ADD_CUSTOM_TARGET(link_astyle ALL COMMAND ${CMAKE_COMMAND} -E create_symlink ${PROJECT_SOURCE_DIR}/misc/pre-commit ${PROJECT_SOURCE_DIR}/.git/hooks/pre-commit)
 endif()
-add_test(NAME regression COMMAND ./run_tests.sh ${CMAKE_INSTALL_PREFIX} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+add_test(NAME regression COMMAND ./run_tests.sh ${CMAKE_INSTALL_PREFIX} ${PLATFORM} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
