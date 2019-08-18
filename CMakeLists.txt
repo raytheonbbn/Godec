@@ -65,7 +65,9 @@ find_package(Boost
   COMPONENTS date_time atomic regex system serialization filesystem iostreams timer chrono program_options thread 
   )
 
-find_package(PkgConfig)
+if (NOT PLATFORM STREQUAL "Windows")
+  find_package(PkgConfig)
+endif()
 if(DEFINED Eigen3_INCLUDE_DIRS)
 else()
   pkg_search_module(Eigen3 REQUIRED eigen3)
