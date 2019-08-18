@@ -135,10 +135,10 @@ matrix:
 
     - language: cpp
       os: windows
+      env: PLATFORM=Windows 
       before_script:
       - export MSBUILD_PATH="c:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin"
       - export MY_CMAKE="c:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"
-      - export PLATFORM=Windows
       - cd $HOME
       - wget -q https://svwh.dl.sourceforge.net/project/boost/boost-binaries/1.68.0/boost_1_68_0-bin-msvc-all-32-64.7z
       - 7z x boost_1_68_0-bin-msvc-all-32-64.7z boost_1_68_0/lib64-msvc-14.1/* boost_1_68_0/boost/* 
@@ -164,4 +164,17 @@ script:
       - mkdir cmake-build && cd cmake-build 
       - "\"$MY_CMAKE\" -DPLATFORM=$PLATFORM $CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=../install ../"
       - eval "$MY_MAKE_COMMAND"
+      - cd ../install
+      - tar cvzf $HOME/godec.$PLATFORM.tgz *
 
+deploy:
+  provider: releases
+  api_key:
+    secure: bDKHv4BYVBuCB06vnHvDj1t1Lgwb5ghp7kJ5WALMWRhlTQVxg20ShvNo1NgRNvXJs4PLLyNg680Z89zUc6fAvxFct8C2y6BM3kYvDyWCz015S5P+geOEyGs/uHgpEcNwgNjecD3larxVhW3xm2YoBw24wE06AEKaUeU2hqCOry0HaTzvu8YRAlx+T0xQ+TWMeDvRhg3sL9UJaSuCvcCMO4pNoeJ5EF3lMe5+50EU3+pRie4xyhfSLgUG0tLDKKUedWqsy0qqzVZPlHRmlXB0gVGweF54ReXomHP9MkYDOYLYxoBXg54F8mn1h/EIMTcEECsZ8M4cbRxzk6gqgavvXc4H10b3lTkNOwcEjL1QosFtAq96nWfT1R6fEVWOE4/X25GX3tTGpjoTuIP/XzkgsYHNqfiuOgWxu74gRNBlViTUvj3rpHCJosri522SEtTD8JIOd8i1SgHR3lredB8/O9Ilb/TqPkdeWjZGA7NnNY3Iejom8Gz4JWHa+l5Xft4I1P42XHUbxkztyhAH86PTIiRh01B4rrcOzLIS7xo71L5WeUm6B0jWiXOKTh6ajdd5hv8mIY/Fmpaj31I2P8uRjcTZKiAyzTBJt80NhNxbpwvWuxuRGxvyHeQakKODpnGZqbt8uHkTKIVk3H+dYIjM3aCP+GlMym59UzMRbI6Zgzc=
+  file: $HOME/godec.$PLATFORM.tgz
+  skip_cleanup: true
+  draft: false
+  on:
+    repo: raytheonbbn/Godec
+    branch: master
+    tag: true
