@@ -176,5 +176,5 @@ deploy:
   draft: false
   on:
     repo: raytheonbbn/Godec
-    branch: master
-    tag: true
+    all_branches: true
+    tags: true
