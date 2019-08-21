@@ -128,10 +128,12 @@ link_directories(
   )
 
 file(WRITE "${PROJECT_SOURCE_DIR}/src/include/godec/version.h" "#pragma once\n")
-# Generate version SHA include file
-execute_process(COMMAND git rev-parse --short HEAD OUTPUT_VARIABLE SHA)
-string(REGEX REPLACE "[\ \n]+" "" SHA "${SHA}")
-file(APPEND "${PROJECT_SOURCE_DIR}/src/include/godec/version.h" "#define GODEC_VERSION_STRING \"${SHA}\"\n")
+if (VERSION_STRING STREQUAL "")
+  # Use Git SHA as version
+  execute_process(COMMAND git rev-parse --short HEAD OUTPUT_VARIABLE VERSION_STRING)
+  string(REGEX REPLACE "[\ \n]+" "" VERSION_STRING "${VERSION_STRING}")
+endif()
+file(APPEND "${PROJECT_SOURCE_DIR}/src/include/godec/version.h" "#define GODEC_VERSION_STRING \"${VERSION_STRING}\"\n")
 
 # Get Eigen version
 execute_process(COMMAND bash "-c" "grep EIGEN_WORLD_VERSION ${Eigen3_INCLUDE_DIRS}/Eigen/src/Core/util/Macros.h | head -1 | awk '{print $3;}'" OUTPUT_VARIABLE EIGEN_WORLD_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)

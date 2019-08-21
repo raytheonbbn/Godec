@@ -162,7 +162,7 @@ matrix:
 script:
       - cd $TRAVIS_BUILD_DIR
       - mkdir cmake-build && cd cmake-build 
-      - "\"$MY_CMAKE\" -DPLATFORM=$PLATFORM $CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=../install ../"
+      - "\"$MY_CMAKE\" -DPLATFORM=$PLATFORM -DVERSION_STRING=\"$TRAVIS_TAG\" $CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=../install ../"
       - eval "$MY_MAKE_COMMAND"
       - cd ../install
       - tar cvzf $HOME/godec.$PLATFORM.tgz *
