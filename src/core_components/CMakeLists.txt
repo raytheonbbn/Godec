@@ -67,7 +67,7 @@ elseif (PLATFORM STREQUAL "Windows")
   set(LINKER_GODEC_ARGS godec_core_static)
 endif()
 if (NOT PLATFORM STREQUAL "Windows")
-  set(LINKER_GODEC_ARGS "${LINKER_GODEC_ARGS} -Wl,--no-undefined")
+  list(APPEND LINKER_GODEC_ARGS -Wl,--no-undefined)
 endif()
 
 add_library(godec_core SHARED godec_core.cc)
@@ -79,7 +79,7 @@ target_link_libraries(godec_core
         ${LINKER_GODEC_ARGS} 
         godec_static
         Boost::thread Boost::program_options Boost::regex Boost::system Boost::serialization Boost::filesystem Boost::iostreams Boost::timer Boost::chrono
-	${LINKER_LIBS}
+        ${LINKER_LIBS}
         )
 
 install (TARGETS godec_core DESTINATION bin/${PLATFORM_STRING})

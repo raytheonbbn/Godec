@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.7)
 
-if (NOT DEFINED PLATFORM)
+if (NOT (PLATFORM STREQUAL "Linux" OR PLATFORM STREQUAL "Android" OR PLATFORM STREQUAL "Generic_ARM" OR PLATFORM STREQUAL "Windows"))
   message(FATAL_ERROR "Please specify the PLATFORM variable <Linux, Android, Generic_ARM, Windows")
 endif()
 
@@ -86,7 +86,7 @@ endif()
 
 if (PLATFORM STREQUAL "Android")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -DANDROID -marm -march=armv7-a -mfpu=neon -Wno-narrowing -fexceptions -frtti -Wno-deprecated-register -Wno-redeclared-class-member")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lOpenSLES")
+  list(APPEND LINKER_LIBS -lOpenSLES)
 elseif(PLATFORM STREQUAL "Generic_ARM")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -mcpu=cortex-a53 -rdynamic -mfpu=neon-fp-armv8 -mneon-for-64bits -mhard-float")
 elseif(PLATFORM STREQUAL "Linux")
@@ -104,12 +104,13 @@ if (NOT PLATFORM STREQUAL "Windows")
   add_definitions(
     -DLINUX_MACHINE=1
   )
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-undefined")
+  list(APPEND LINKER_LIBS -Wl,--no-undefined)
 else()
   add_definitions(
     -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS 
 )
 endif()
+
 
 include_directories(
   BEFORE SYSTEM
@@ -161,11 +162,11 @@ endif()
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${Boost_LIBRARY_DIRS};${PYTHON_LIBRARY_DIR}")
 
 if (PLATFORM STREQUAL "Android")
-  set(LINKER_LIBS "-llog -lz -lOpenSLES")
+  list(APPEND LINKER_LIBS -llog -lz -lOpenSLES)
 elseif(PLATFORM STREQUAL "Windows")
-  set(LINKER_LIBS ${JAVA_JVM_LIBRARY} ${PYTHON_LIBRARIES} ${ZLIB_LIBRARY} winmm.lib)
+  list(APPEND LINKER_LIBS ${JAVA_JVM_LIBRARY} ${PYTHON_LIBRARIES} ${ZLIB_LIBRARY} winmm.lib)
 else()
-  set(LINKER_LIBS ${JAVA_JVM_LIBRARY} ${PYTHON_LIBRARIES} ${ZLIB_LIBRARY} -ldl -lrt -lasound)
+  list(APPEND LINKER_LIBS ${JAVA_JVM_LIBRARY} ${PYTHON_LIBRARIES} ${ZLIB_LIBRARY} -ldl -lrt -lasound)
 endif()
 
 add_subdirectory(src/core_components)
