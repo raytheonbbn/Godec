@@ -52,7 +52,10 @@ void AccumCovariance::addData(const Matrix& newData) {
     if (mDecayRate != 1.0f) {
         double cumDecayRate = exp(log(mDecayRate)*newDataN);
         accumN *= cumDecayRate; // Simply pretend we have less history
+        accumMean *= cumDecayRate;
+        accumCovar *= cumDecayRate;
     }
+
     covarIsCurrent = false;
     invCovarIsCurrent = false;
 }
