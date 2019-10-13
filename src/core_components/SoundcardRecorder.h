@@ -22,6 +22,7 @@
 namespace Godec {
 
 using namespace std;
+class SoundcardRecorderComponent;
 
 class SoundDataReceiver {
   public:
@@ -34,7 +35,7 @@ class SoundDataReceiver {
 
 class WindowsSoundcardRecorder {
   public:
-    WindowsSoundcardRecorder(float samplingRate, int numChannels, int sampleDepth, int chunkSizeInSamples, SoundDataReceiver *receiver);
+    WindowsSoundcardRecorder(float samplingRate, int numChannels, int sampleDepth, int chunkSizeInSamples, SoundcardRecorderComponent *godecComp);
     ~WindowsSoundcardRecorder();
     void startCapture();
     void stopCapture();
@@ -45,7 +46,7 @@ class WindowsSoundcardRecorder {
     WAVEHDR whdr[numberOfBuffers];
     HWAVEIN mHwi; // the input-device
 
-    SoundDataReceiver *mReceiver;
+    SoundcardRecorderComponent* mGodecComp;
     bool mKeepRunning;
 
     boost::thread mProcThread;
@@ -62,14 +63,14 @@ class WindowsSoundcardRecorder {
 class AndroidAudioRecorder {
 
   public:
-    AndroidAudioRecorder(float samplingRate, int numChannels, int sampleDepth, int chunkSizeInSamples, SoundDataReceiver *receiver);
+    AndroidAudioRecorder(float samplingRate, int numChannels, int sampleDepth, int chunkSizeInSamples, SoundcardRecorderComponent* godecComp);
     ~AndroidAudioRecorder();
     void startCapture();
     void stopCapture();
 
     std::vector<unsigned char> inputBuffer[2];
     int currentInputBuffer;
-    SoundDataReceiver *mReceiver;
+    SoundcardRecorderComponent* mGodecComp;
 
     float mSamplingRate;
     int mNumChannels;
@@ -91,7 +92,7 @@ class AndroidAudioRecorder {
 #else
 class LinuxAudioRecorder {
   public:
-    LinuxAudioRecorder(std::string cardId, float samplingRate, int numChannels, int sampleDepth, int chunkSizeInSamples, SoundDataReceiver *receiver);
+    LinuxAudioRecorder(std::string cardId, float samplingRate, int numChannels, int sampleDepth, int chunkSizeInSamples, SoundcardRecorderComponent* godecComp);
     ~LinuxAudioRecorder();
     void startCapture();
     void stopCapture();
@@ -100,7 +101,7 @@ class LinuxAudioRecorder {
     snd_pcm_t *capture_handle;
     snd_pcm_hw_params_t *hw_params;
 
-    SoundDataReceiver *mReceiver;
+    SoundcardRecorderComponent* mGodecComp;
     bool mKeepRunning;
 
     float mSamplingRate;

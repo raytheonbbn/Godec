@@ -4,6 +4,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <boost/range/adaptor/transformed.hpp>
 #include <stdio.h>
 #include <chrono>
 #include <thread>
@@ -14,6 +15,7 @@ namespace Godec {
 const uint16_t WAVE_FORMAT_PCM = 0x0001;
 const uint16_t WAVE_FORMAT_ALAW = 0x0006;
 const uint16_t WAVE_FORMAT_MULAW = 0x0007;
+const uint16_t WAVE_FORMAT_EXTENDED = 0xFFFE;
 
 void trimLine(char* segFileLine) {
     for (size_t idx = 0; idx < strlen(segFileLine); idx++)
@@ -44,7 +46,7 @@ int64_t AudioFileReader::getTotalNumSamples() {
     return fileSize / (numChannels*bytesPerSample);
 }
 
-void AudioFileReader::readData(std::vector<unsigned char>& audioData, int64_t beginSample, int64_t& endSample, int channel) {
+void AudioFileReader::readData(std::vector<unsigned char>& audioData, int64_t beginSample, int64_t& endSample, std::vector<int> channels) {
     int64_t segmentBeginBytes = numChannels*bytesPerSample*beginSample;
     // int64_t segmentEndBytes = numChannels*bytesPerSample*endSample;
 
@@ -61,11 +63,15 @@ void AudioFileReader::readData(std::vector<unsigned char>& audioData, int64_t be
         endSample = beginSample+numSamples;
     }
 
-    audioData.resize(numSamples*bytesPerSample);
+    audioData.resize(numSamples*bytesPerSample*channels.size());
 
     for (int64_t sampleIdx = 0; sampleIdx < numSamples; sampleIdx++) {
-        int64_t readPosition = bytesPerSample*(numChannels*sampleIdx + (channel - 1));
-        memcpy(&audioData[sampleIdx*bytesPerSample], allChannelsTmpAudio + readPosition, bytesPerSample);
+        for(int channelIdx = 0; channelIdx < channels.size(); channelIdx++) {
+            int channel = channels[channelIdx];
+            int64_t readPosition = bytesPerSample*(numChannels*sampleIdx + (channel - 1));
+            int64_t writePos = sampleIdx*bytesPerSample*channels.size()+channelIdx*bytesPerSample;
+            memcpy(&audioData[writePos], allChannelsTmpAudio + readPosition, bytesPerSample);
+        }
     }
 
     delete[](allChannelsTmpAudio);
@@ -77,7 +83,6 @@ void AudioFileReader::close() {
 
 AudioFileReader *openWaveFile(const char *fileName) {
     AudioFileReader* outFR = new AudioFileReader();
-
     struct stat statBuf;
     stat(fileName, &statBuf);
     outFR->headerSize = 44;
@@ -85,24 +90,26 @@ AudioFileReader *openWaveFile(const char *fileName) {
     FILE *f = fopen(fileName, "rb");
     if (f == NULL) GODEC_ERR << "Failed to open audio file: " << fileName;
 
-    char buffer[30];
+    std::vector<char> buffer;
+    buffer.resize(12);
 
     // WAVE format description: http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
 
-    fread(buffer, 1, 12, f);
-    if (strncmp(buffer, "RIFF", strlen("RIFF")) != 0 || strncmp(buffer+8, "WAVE", strlen("WAVE") != 0)) {
+    fread(&buffer[0], 1, 12, f);
+    if (strncmp(&buffer[0], "RIFF", strlen("RIFF")) != 0 || strncmp(&buffer[0]+8, "WAVE", strlen("WAVE") != 0)) {
         GODEC_ERR << "Not a MS RIFF WAV file: " << fileName;
     }
 
     do {
-        fread(buffer, 1, 8, f);
-        uint32_t chunkSize = *((uint32_t *)(buffer + 4));
+        fread(&buffer[0], 1, 8, f);
+        uint32_t chunkSize = *((uint32_t *)(&buffer[0] + 4));
+        buffer.resize(chunkSize);
         //printf("Chunk type: %c%c%c%c, size %i\n", buffer[0],buffer[1],buffer[2], buffer[3],chunkSize);
-        if (strncmp(buffer,"fmt ",strlen("fmt ")) == 0) {
-            fread(buffer, 1, chunkSize, f);
+        if (strncmp(&buffer[0],"fmt ",strlen("fmt ")) == 0) {
+            fread(&buffer[0], 1, chunkSize, f);
 
-            uint16_t audioFormat = *((uint16_t*)(buffer + 0));
-            if (audioFormat == WAVE_FORMAT_PCM)
+            uint16_t audioFormat = *((uint16_t*)(&buffer[0] + 0));
+            if (audioFormat == WAVE_FORMAT_PCM || audioFormat == WAVE_FORMAT_EXTENDED)
                 outFR->audioType = PCM;
             else if (audioFormat == WAVE_FORMAT_ALAW)
                 outFR->audioType = Alaw;
@@ -111,21 +118,21 @@ AudioFileReader *openWaveFile(const char *fileName) {
             else {
                 GODEC_ERR << "Unsupported audio format '" << audioFormat << "', only PCM, Alaw and MuLaw are supported in wav file.";
             }
-            outFR->numChannels = *((uint16_t*)(buffer + 2));
+            outFR->numChannels = *((uint16_t*)(&buffer[0] + 2));
 
-            uint32_t samplingRate = *((uint32_t *)(buffer + 4));
+            uint32_t samplingRate = *((uint32_t *)(&buffer[0] + 4));
             outFR->samplingFrequency = samplingRate;
-            short bitsPerSample = *((short *)(buffer + 14));
+            short bitsPerSample = *((short *)(&buffer[0] + 14));
 
-            //printf("Format: numchan=%i, sr: %f, bps: %i.\n", outFR->numChannels, outFR->samplingFrequency, bitsPerSample);
+            //printf("Format: numchan=%i, sr: %f, bps: %i.\n", outFR->numChannels, outFR->samplingFrequency, bitsPerSample); fflush(stdout);
             outFR->bytesPerSample = bitsPerSample / 8;
         } else if (
-            (strncmp(buffer,"fact",strlen("fact")) == 0) ||
-            (strncmp(buffer,"list",strlen("list")) == 0) ||
-            (strncmp(buffer,"LIST",strlen("LIST")) == 0)
+            (strncmp(&buffer[0],"fact",strlen("fact")) == 0) ||
+            (strncmp(&buffer[0],"list",strlen("list")) == 0) ||
+            (strncmp(&buffer[0],"LIST",strlen("LIST")) == 0)
         ) {
-            fread(buffer, 1, chunkSize, f);
-        } else if (strncmp(buffer,"data",strlen("data")) == 0) {
+            fread(&buffer[0], 1, chunkSize, f);
+        } else if (strncmp(&buffer[0],"data",strlen("data")) == 0) {
             outFR->headerSize = ftell(f);
             outFR->fileSize = statBuf.st_size - outFR->headerSize;
             outFR->fPtr = f;
@@ -196,7 +203,7 @@ AudioFileReader *openNIST1AFile(const char *fileName) {
     return outFR;
 }
 
-void parseAnalistLine(std::string& analistFileLine, std::string& waveFile, int& channel, std::string& typeString, int64_t& beginSample, int64_t& endSample, double& stretch, std::string& utteranceId, std::string& episodeName) {
+void parseAnalistLine(std::string& analistFileLine, std::string& waveFile, std::vector<int>& channels, std::string& typeString, int64_t& beginSample, int64_t& endSample, double& stretch, std::string& utteranceId, std::string& episodeName) {
     boost::algorithm::trim_right(analistFileLine);
 
     std::istringstream iss(analistFileLine);
@@ -208,7 +215,13 @@ void parseAnalistLine(std::string& analistFileLine, std::string& waveFile, int& 
         iss >> lineEl;
         if (lineEl.compare("") == 0 || lineEl.empty()) continue;
         else if (lineEl == "-c") {
-            iss >> channel;
+            std::string channelString;
+            iss >> channelString;
+            std::vector<std::string> channelEls;
+            boost::split(channelEls, channelString, boost::is_any_of(","));
+            for(int idx = 0; idx < channelEls.size(); idx++) {
+                channels.push_back(boost::lexical_cast<int>(channelEls[idx]));
+            }
         } else if (lineEl == "-t") {
             iss >> typeString;
         } else if (lineEl == "-f") {
@@ -230,7 +243,8 @@ void parseAnalistLine(std::string& analistFileLine, std::string& waveFile, int& 
     } while (iss);
     if (episodeName == "") {
         std::ostringstream episodeStream;
-        episodeStream << waveFile << "-" << channel;
+        std::string channelString = boost::algorithm::join( channels | boost::adaptors::transformed( static_cast<std::string(*)(int)>(std::to_string) ), ",");
+        episodeStream << waveFile << "-" << channelString;
         episodeName = episodeStream.str();
     }
 }
@@ -247,13 +261,13 @@ AnalistFileFeeder::AnalistFileFeeder(char* analistFile, char* waveFileDir, char*
         std::string analistLineString(analistFileLine);
 
         std::string waveFile;
-        int channel;
+        std::vector<int> channels;
         std::string typeString;
         int64_t beginSample, endSample;
         double stretch;
         std::string utteranceId;
         std::string episodeName;
-        parseAnalistLine(analistLineString, waveFile, channel, typeString, beginSample, endSample, stretch, utteranceId, episodeName);
+        parseAnalistLine(analistLineString, waveFile, channels, typeString, beginSample, endSample, stretch, utteranceId, episodeName);
 
         episodeList.push_back(episodeName);
     }
@@ -262,7 +276,7 @@ AnalistFileFeeder::AnalistFileFeeder(char* analistFile, char* waveFileDir, char*
     utteranceCounter = 0;
 }
 
-bool AnalistFileFeeder::getNextUtterance(std::vector<unsigned char>& audioData, int& sampleWidth, std::string& utteranceId, std::string& episodeName, bool& episodeDone, bool& fileDone, std::string& waveFile, int& channel, std::string& formatString, float& audioChunkTimeInSeconds, int64_t& beginSample, float& uttOffsetInFileInSeconds) {
+bool AnalistFileFeeder::getNextUtterance(std::vector<unsigned char>& audioData, int& sampleWidth, std::string& utteranceId, std::string& episodeName, bool& episodeDone, bool& fileDone, std::string& waveFile, std::vector<int>& channels, std::string& formatString, float& audioChunkTimeInSeconds, int64_t& beginSample, float& uttOffsetInFileInSeconds) {
     utteranceCounter++;
     utteranceId = std::to_string(utteranceCounter);
     episodeDone = false;
@@ -274,7 +288,7 @@ bool AnalistFileFeeder::getNextUtterance(std::vector<unsigned char>& audioData, 
         std::string typeString;
         int64_t endSample;
         double vtlStretch;
-        parseAnalistLine(analistLineString, waveFile, channel, typeString, beginSample, endSample, vtlStretch, utteranceId, episodeName);
+        parseAnalistLine(analistLineString, waveFile, channels, typeString, beginSample, endSample, vtlStretch, utteranceId, episodeName);
 
         if (utteranceCounter == episodeList.size() || episodeName != episodeList[utteranceCounter]) episodeDone = true;
 
@@ -300,10 +314,10 @@ bool AnalistFileFeeder::getNextUtterance(std::vector<unsigned char>& audioData, 
 
         std::stringstream ss;
         sampleWidth = reader->bytesPerSample*8;
-        ss << std::setprecision(50) << "base_format=" << baseFormat << ";sample_width=" << sampleWidth << ";sample_rate=" << reader->samplingFrequency << ";vtl_stretch=" << vtlStretch << ";num_channels=1;";
+        ss << std::setprecision(50) << "base_format=" << baseFormat << ";sample_width=" << sampleWidth << ";sample_rate=" << reader->samplingFrequency << ";vtl_stretch=" << vtlStretch << ";num_channels=" << channels.size() << ";";
         formatString = ss.str();
-        reader->readData(audioData, beginSample, endSample, channel);
-        audioChunkTimeInSeconds = audioData.size() /((float)reader->samplingFrequency*reader->bytesPerSample);
+        reader->readData(audioData, beginSample, endSample, channels);
+        audioChunkTimeInSeconds = audioData.size() /((float)channels.size()*reader->samplingFrequency*reader->bytesPerSample);
         uttOffsetInFileInSeconds = beginSample/(float)reader->samplingFrequency;
         reader->close();
         delete reader;
@@ -493,6 +507,7 @@ FileFeederComponent::~FileFeederComponent() {
 
 void FileFeederComponent::Start() {
     mFeedThread = boost::thread(&FileFeederComponent::FeedLoop, this);
+    RegisterThreadForLogging(mFeedThread, mLogPtr, isVerbose());
     if (mControlType == "single_on_startup") {
         mFFHChannel.checkOut(getLPId(false));
     } else if (mControlType == "external") {
@@ -527,7 +542,7 @@ void FileFeederComponent::FeedLoop() {
         std::string utteranceId;
         std::string episodeName;
         std::string waveFile;
-        int channel;
+        std::vector<int> channels;
         std::string ctm_channel;
         bool episodeDone = false;
         bool fileDone = false;
@@ -548,7 +563,7 @@ void FileFeederComponent::FeedLoop() {
         json jsonConvState;
 
         while (
-            ((ffh->analistFileFeeder != NULL) && (ffh->analistFileFeeder->getNextUtterance(audioData, sampleWidth, utteranceId, episodeName, episodeDone, fileDone, waveFile, channel, formatString, audioChunkTimeInSeconds, beginSamples, uttOffsetInFileInSeconds))) ||
+            ((ffh->analistFileFeeder != NULL) && (ffh->analistFileFeeder->getNextUtterance(audioData, sampleWidth, utteranceId, episodeName, episodeDone, fileDone, waveFile, channels, formatString, audioChunkTimeInSeconds, beginSamples, uttOffsetInFileInSeconds))) ||
             ((ffh->numpyFileFeeder != NULL) && (ffh->numpyFileFeeder->getNextUtterance(features, nFrames, frameLength, utteranceId, episodeName, episodeDone, fileDone))) ||
             ((ffh->textFileFeeder != NULL) && (ffh->textFileFeeder->getNextUtterance(utteranceId, text, fileDone))) ||
             ((ffh->jsonFileFeeder != NULL) && (ffh->jsonFileFeeder->getNextMessage(jsonMessage, jsonConvState)))
@@ -576,7 +591,7 @@ void FileFeederComponent::FeedLoop() {
                 int64_t audioRunner = 0;
                 auto feedStartTime = std::chrono::system_clock::now();
                 while (audioRunner < audioData.size()) {
-                    int64_t actualIncrement = std::min((int64_t)(audioData.size() - audioRunner), (int64_t)ffh->chunkSizeInSamples*(sampleWidth/8));
+                    int64_t actualIncrement = std::min((int64_t)(audioData.size() - audioRunner), (int64_t)channels.size()*ffh->chunkSizeInSamples*(sampleWidth/8));
                     float secondsToAdd = audioChunkTimeInSeconds*((audioRunner+actualIncrement)/(float)audioData.size())/ffh->mFeedRealtimeFactor;
 
                     auto timeToWaitUntil = feedStartTime+std::chrono::milliseconds((int)(1000*secondsToAdd));
@@ -595,7 +610,8 @@ void FileFeederComponent::FeedLoop() {
                     auto outMsg = BinaryDecoderMessage::create(ffh->mTimeUpsampleFactor*(totalTime + 1) - 1, pushData, formatString);
                     (boost::const_pointer_cast<DecoderMessage>(outMsg))->addDescriptor("file_feeder_input_file", boost::lexical_cast<std::string>(ffh->inputFile));
                     (boost::const_pointer_cast<DecoderMessage>(outMsg))->addDescriptor("wave_file_name", waveFile);
-                    (boost::const_pointer_cast<DecoderMessage>(outMsg))->addDescriptor("channel", boost::lexical_cast<std::string>(channel));
+                    std::string channelString = boost::algorithm::join( channels | boost::adaptors::transformed( static_cast<std::string(*)(int)>(std::to_string) ), ",");
+                    (boost::const_pointer_cast<DecoderMessage>(outMsg))->addDescriptor("channel", channelString);
                     (boost::const_pointer_cast<DecoderMessage>(outMsg))->addDescriptor("speaker", episodeName);
                     (boost::const_pointer_cast<DecoderMessage>(outMsg))->addDescriptor("utterance_offset_in_file", boost::lexical_cast<std::string>(uttOffsetInFileInSeconds));
 

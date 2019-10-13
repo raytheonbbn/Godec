@@ -19,7 +19,7 @@ enum AudioType {
 
 class AudioFileReader {
   public:
-    void readData(std::vector<unsigned char> &audioData, int64_t beginSample, int64_t &endSample, int channel = 1);
+    void readData(std::vector<unsigned char> &audioData, int64_t beginSample, int64_t &endSample, std::vector<int> channels);
     void close();
     int64_t getTotalNumSamples();
     FILE* fPtr;
@@ -41,7 +41,7 @@ class AnalistFileFeeder {
                           bool &episodeDone,
                           bool &fileDone,
                           std::string &waveFile,
-                          int &channel,
+                          std::vector<int> &channels,
                           std::string &formatString,
                           float &audioChunkTimeInSeconds,
                           int64_t &beginSample,

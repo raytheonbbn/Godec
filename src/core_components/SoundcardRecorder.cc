@@ -95,7 +95,7 @@ void SoundcardRecorderComponent::ProcessMessage(const DecoderMessageBlock& msgBl
 
 #ifdef _MSC_VER
 
-WindowsSoundcardRecorder::WindowsSoundcardRecorder(float samplingRate, int numChannels, int sampleDepth, int chunkSizeInSamples, SoundDataReceiver *receiver) {
+WindowsSoundcardRecorder::WindowsSoundcardRecorder(float samplingRate, int numChannels, int sampleDepth, int chunkSizeInSamples, SoundcardRecorderComponent *godecComp) {
     mSamplingRate = samplingRate;
     mNumChannels = numChannels;
     mSampleDepth = sampleDepth;
@@ -103,7 +103,7 @@ WindowsSoundcardRecorder::WindowsSoundcardRecorder(float samplingRate, int numCh
 
     // Initialize sound-card.
 
-    mReceiver = receiver;
+    mGodecComp = godecComp;
 
     wex.wFormatTag = WAVE_FORMAT_PCM;
     wex.cbSize = 0;
@@ -194,7 +194,7 @@ void WindowsSoundcardRecorder::ProcessLoop() {
         }
 
         long numSamples = whdr[currentBuffer].dwBytesRecorded / (mNumChannels*(mSampleDepth / 8));
-        mReceiver->receiveData(numSamples, mSamplingRate, mSampleDepth, mNumChannels, (const unsigned char*)whdr[currentBuffer].lpData);
+        mGodecComp->receiveData(numSamples, mSamplingRate, mSampleDepth, mNumChannels, (const unsigned char*)whdr[currentBuffer].lpData);
 
         if (waveInPrepareHeader(mHwi, &whdr[currentBuffer], sizeof(WAVEHDR)) != MMSYSERR_NOERROR) {
             GODEC_ERR << "Failed to prepare audio buffers for recording. ";
@@ -212,6 +212,7 @@ void WindowsSoundcardRecorder::ProcessLoop() {
 void WindowsSoundcardRecorder::startCapture() {
     mKeepRunning = true;
     mProcThread = boost::thread(&WindowsSoundcardRecorder::ProcessLoop, this);
+    RegisterThreadForLogging(mProcThread, mGodecComp->getLogPtr(), mGodecComp->isVerbose());
 }
 
 void WindowsSoundcardRecorder::stopCapture() {
@@ -232,15 +233,15 @@ void bqRecorderCallback(SLAndroidSimpleBufferQueueItf bq, void *context) {
 
     std::vector<unsigned char>& filledBuffer = r->inputBuffer[r->currentInputBuffer];
     long numSamples = filledBuffer.size()/(r->mNumChannels*(r->mSampleDepth / 8));
-    r->mReceiver->receiveData(numSamples, r->mSamplingRate, r->mSampleDepth, r->mNumChannels, &filledBuffer[0]);
+    r->mGodecComp->receiveData(numSamples, r->mSamplingRate, r->mSampleDepth, r->mNumChannels, &filledBuffer[0]);
 }
 
-AndroidAudioRecorder::AndroidAudioRecorder(float samplingRate, int numChannels, int sampleDepth, int chunkSizeInSamples, SoundDataReceiver *receiver) {
+AndroidAudioRecorder::AndroidAudioRecorder(float samplingRate, int numChannels, int sampleDepth, int chunkSizeInSamples, SoundcardRecorderComponent *godecComp) {
     mSamplingRate = samplingRate;
     mNumChannels = numChannels;
     mSampleDepth = sampleDepth;
     mChunkSize = chunkSizeInSamples;
-    mReceiver = receiver;
+    mGodecComp = godecComp;
 
     inputBuffer[0].resize(mChunkSize*mNumChannels*(mSampleDepth/8));
     inputBuffer[1].resize(mChunkSize*mNumChannels*(mSampleDepth/8));
@@ -333,12 +334,12 @@ void AndroidAudioRecorder::stopCapture() {
 
 bool tttr(std::string s, bool b) {if (!b) GODEC_ERR << s << std::endl; return b;}
 
-LinuxAudioRecorder::LinuxAudioRecorder(std::string cardId, float samplingRate, int numChannels, int sampleDepth, int chunkSizeInSamples, SoundDataReceiver *receiver) {
+LinuxAudioRecorder::LinuxAudioRecorder(std::string cardId, float samplingRate, int numChannels, int sampleDepth, int chunkSizeInSamples, SoundcardRecorderComponent *godecComp) {
     mSamplingRate = samplingRate;
     mNumChannels = numChannels;
     mSampleDepth = sampleDepth;
     mChunkSize = chunkSizeInSamples;
-    mReceiver = receiver;
+    mGodecComp = godecComp;
 
     snd_pcm_format_t sampleFormat = SND_PCM_FORMAT_S16_LE;
     if (sampleDepth == 8) {
@@ -370,6 +371,7 @@ void LinuxAudioRecorder::startCapture() {
     //if (snd_pcm_pause(capture_handle, 0) < 0) GODEC_ERR << "Couldn't unpause audio capture";
     mKeepRunning = true;
     mProcThread = boost::thread(&LinuxAudioRecorder::ProcessLoop, this);
+    RegisterThreadForLogging(mProcThread, mGodecComp->getLogPtr(), mGodecComp->isVerbose());
 }
 
 void LinuxAudioRecorder::stopCapture() {
@@ -383,7 +385,7 @@ void LinuxAudioRecorder::ProcessLoop() {
     unsigned char* audioBuffer = new unsigned char[bufferSize];
     while (mKeepRunning) {
         if (snd_pcm_readi(capture_handle, audioBuffer, mChunkSize) != mChunkSize) GODEC_ERR << "Couldn't read audio";
-        mReceiver->receiveData(mChunkSize, mSamplingRate, mSampleDepth, mNumChannels, audioBuffer);
+        mGodecComp->receiveData(mChunkSize, mSamplingRate, mSampleDepth, mNumChannels, audioBuffer);
     }
 }
 

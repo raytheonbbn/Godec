@@ -80,6 +80,8 @@ std::string CdToFilePath(std::string path); // Returns cwd, for restoring later
 // Logging structures. Each thread maintains its own logging handle
 extern unordered_map<std::string, std::pair<bool, FILE*>> GlobalThreadId2LogHandle;
 
+void RegisterThreadForLogging(boost::thread& thread, FILE* logPtr, bool verbose);
+
 struct LogMessageEnvelope {
     enum Severity {
         kError = -1,
