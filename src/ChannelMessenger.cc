@@ -7,6 +7,7 @@
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <time.h>
 #include <fstream>
 
 namespace Godec {
@@ -217,9 +218,16 @@ std::string LoopProcessor::getLPId(bool withTime, bool trimmed) {
     }
     ss << trimmedId;
     if (withTime) {
-        ss.precision(3);
+        ss.precision(6);
         ss << std::fixed;
+#ifdef ANDROID
+        // Switch to timespec_get on Android once it is available
         auto seconds = (boost::posix_time::microsec_clock::local_time() - boost::posix_time::ptime(boost::gregorian::date(1970, 1, 1))).total_nanoseconds()/1.0E9;
+#else
+        struct timespec ts;
+        timespec_get(&ts, TIME_UTC);
+        auto seconds = ts.tv_sec+ts.tv_nsec/1.0E9;
+#endif
         ss << "(" << seconds << ")";
     }
     return ss.str();
@@ -227,8 +235,7 @@ std::string LoopProcessor::getLPId(bool withTime, bool trimmed) {
 
 void LoopProcessor::startDecodingLoop() {
     mProcThread = boost::thread(&LoopProcessor::ProcessLoop, this);
-    std::string threadId = boost::lexical_cast<std::string>(mProcThread.get_id());
-    GlobalThreadId2LogHandle[threadId] = std::make_pair(isVerbose(), mLogPtr);
+    RegisterThreadForLogging(mProcThread, mLogPtr, isVerbose());
 }
 
 void LoopProcessor::ProcessLoopMessages() {
@@ -397,9 +404,6 @@ void ComponentGraphConfig::ParameterCheck() {
             p == "verbose"
         ) continue;
         if (mConsumedOptions.find(p) == mConsumedOptions.end()) {
-            for (auto it = mConsumedOptions.begin(); it != mConsumedOptions.end(); it++) {
-                GODEC_INFO << "Consumed option " << *it << std::endl;
-            }
             GODEC_ERR << mId << ": Superfluous parameter '" << v.key() << "'. Either remove, or park it by prefixing it with '#' character" << std::endl;
         }
     }

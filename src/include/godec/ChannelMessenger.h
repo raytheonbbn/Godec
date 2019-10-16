@@ -237,6 +237,7 @@ class LoopProcessor {
     }
 
     ComponentGraph* GetComponentGraph() {return mComponentGraph;}
+    FILE* getLogPtr() {return mLogPtr;}
 
   protected:
     void ProcessLoopMessages();

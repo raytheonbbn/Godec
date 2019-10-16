@@ -24,6 +24,11 @@ std::string Json2String(json js) {
 
 unordered_map<std::string, std::pair<bool, FILE*>> GlobalThreadId2LogHandle;
 
+void RegisterThreadForLogging(boost::thread& thread, FILE* logPtr, bool verbose) {
+    std::string threadId = boost::lexical_cast<std::string>(thread.get_id());
+    GlobalThreadId2LogHandle[threadId] = std::make_pair(verbose, logPtr);
+}
+
 GodecErrorLogger::GodecErrorLogger(LogMessageEnvelope::Severity severity, const char *func, const char *file, int32_t line) {
     // Obviously, we assume the strings survive the destruction of this object.
     envelope_.severity = severity;
@@ -69,7 +74,7 @@ void GodecErrorLogger::HandleMessage(const LogMessageEnvelope &envelope, const c
     if (logPair.first || envelope.severity == LogMessageEnvelope::kError) {
         fprintf(logPair.second, "%s\n", outString.str().c_str());
         fflush(logPair.second);
-        if (logPair.second != stderr) { // Make sure errors are seen on command line, no matter what
+        if (envelope.severity == LogMessageEnvelope::kError && logPair.second != stderr) { // Make sure errors are seen on command line, no matter what
             fprintf(stderr, "%s\n", outString.str().c_str());
             fflush(stderr);
         }

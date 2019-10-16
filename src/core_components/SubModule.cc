@@ -10,7 +10,7 @@ std::string Submodule::describeThyself() {
 }
 
 /* Submodule::ExtendedDescription
-This component allows for a "Godec within a Godec". You specify the JSON file for that graph with the "file" parameter, and the entire sub-graph gets treated as a single component. Great for building reusable libraries. 
+This component allows for a "Godec within a Godec". You specify the JSON file for that graph with the "file" parameter, and the entire sub-graph gets treated as a single component. Great for building reusable libraries.
 
 For a detailed discussion, [see here](UsingGodec.md), section "Submodules".
 */
@@ -29,14 +29,14 @@ Submodule::Submodule(std::string id, ComponentGraphConfig* configPt) :
 
     json endpoints;
     auto inputsChild = configPt->get_json_child("inputs");
-    for(auto overrideV = inputsChild.begin(); overrideV != inputsChild.end(); overrideV++) { 
+    for(auto overrideV = inputsChild.begin(); overrideV != inputsChild.end(); overrideV++) {
         std::string endpointName = overrideV.key();
         std::vector<std::string> inputs;
         endpoints["!"+endpointName+ComponentGraph::API_ENDPOINT_SUFFIX] = ComponentGraph::CreateApiEndpoint(isVerbose(), inputs, overrideV.key());
     }
 
     auto outputsChild = configPt->get_json_child("outputs");
-    for(auto overrideV = outputsChild.begin(); overrideV != outputsChild.end(); overrideV++) { 
+    for(auto overrideV = outputsChild.begin(); overrideV != outputsChild.end(); overrideV++) {
         std::string endpointName = overrideV.key();
         std::vector<std::string> inputs;
         inputs.push_back(overrideV.key());
@@ -52,7 +52,7 @@ Submodule::Submodule(std::string id, ComponentGraphConfig* configPt) :
     GlobalComponentGraphVals* subGlobals = new GlobalComponentGraphVals(configPt->globalVals);
     json overrideTree;
     if (configPt->get_optional_READ_DECLARATION_BEFORE_USE<std::string>("override")) {
-        auto overrideChild = configPt->get_json_child("override"); 
+        auto overrideChild = configPt->get_json_child("override");
         for(auto overrideV = overrideChild.begin(); overrideV != overrideChild.end(); overrideV++) {
             if ((overrideV.key().find(".") != std::string::npos) || (overrideV.key().find("#") != std::string::npos)) GODEC_ERR << "NOTE: The override format in Submodules has changed, do not use \".\" or \"#\", that is only used now for command line overrides. For Submodules, now use an actual proper JSON tree structure, e.g. instead of \"a.b=c\", do " << std::endl <<
                         "\"override\": " << std::endl <<
@@ -73,6 +73,7 @@ Submodule::Submodule(std::string id, ComponentGraphConfig* configPt) :
         std::string endpointName = id + ComponentGraph::TREE_LEVEL_SEPARATOR + v.key();
         std::string slotName = v.key();
         mPullThreads.push_back(boost::thread(&Submodule::PullThread, this, endpointName, slotName));
+        RegisterThreadForLogging(mPullThreads.back(), mLogPtr, isVerbose());
     }
 }
 

@@ -29,20 +29,16 @@ incorrect timestamps are likely at fault. Monitor the incoming messages and look
 
 This steps is more for performance analysis, to see which components incur the most latency.
 
-To do this you can use the Perl script
+To do this you can use the Python script
 
-    tools/AnalyseLatency.pl
+    tools/AnalyseLatency.py
 
 Do the following steps:
 
-1. Set "verbose" to "true" in the component you want to use as a the reference starting point. Often this is a FileFeeder
-2. Set verbose to true for all the components you want to measure the latency against. NOTE: The scripts considers **outgoing** messages, so you can't use a FileWriter as a measuring point because it only consumes messages. Instead, make the previous component verbose.
-3. Pipe the Godec output into the Perl script. The first argument of the Perl script is the reference component name, plus the message tag you want to use (e.g. "Toplevel.feeder:raw_audio")
-Building
+1. Set "verbose" to "true" and "log_file" to a value in the component you want to use as a the reference starting point. Often this is a FileFeeder.
+2. Run the Python script with the collected log files as the arguments. The script will display the statistics via matplotlib.
 
-The script will output gnuplot-readable syntax. For displaying (assume you wrote the output into "data.txt"), run
-
-    plot for [IDX=0:10] 'data.txt' i IDX u 1:2 w lines title columnheader(1)
+Note that there is a difference between "algorithmic" latency and "realtime" latency. Algorithmic latency is the latency the algorithm of a component incurs, e.g. a component might need 1 second of input audio to create some output. Realtime latency is the combination of the algorithmic latency plus whatever the CPU incurs (thus making it machine-dependent). In order to only measure the algorithmic latency, slow down the input to a very slow pace.
 
 **Gotcha**
 

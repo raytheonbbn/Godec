@@ -131,8 +131,8 @@ matrix:
       - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/p/python-numpy/python3-numpy_1.12.1-3_armhf.deb
       - ar x python3-numpy_1.12.1-3_armhf.deb
       - tar xf data.tar.xz -C $HOME/pydev 
-      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/e/expat/libexpat1_2.2.0-2+deb9u2_armhf.deb
-      - ar x libexpat1_2.2.0-2+deb9u2_armhf.deb
+      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/e/expat/libexpat1_2.2.0-2+deb9u3_armhf.deb
+      - ar x libexpat1_2.2.0-2+deb9u3_armhf.deb
       - tar xf data.tar.xz -C $HOME/pydev 
       - mkdir $HOME/zlib
       - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/z/zlib/zlib1g-dev_1.2.8.dfsg-5_armhf.deb
@@ -199,7 +199,7 @@ matrix:
       - export MSBUILD_PATH="c:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin"
       - export MY_CMAKE="c:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"
       - cd $HOME
-      - wget -q https://svwh.dl.sourceforge.net/project/boost/boost-binaries/1.68.0/boost_1_68_0-bin-msvc-all-32-64.7z
+      - curl -O -J -L https://sourceforge.net/projects/boost/files/boost-binaries/1.68.0/boost_1_68_0-bin-msvc-all-32-64.7z/download
       - 7z x boost_1_68_0-bin-msvc-all-32-64.7z boost_1_68_0/lib64-msvc-14.1/* boost_1_68_0/boost/* 
       - rm -f boost_1_68_0-bin-msvc-all-32-64.7z
       - wget -q http://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2
@@ -215,7 +215,7 @@ matrix:
       - wget https://www.libs4win.com/libzlib/libzlib-1.2.11-msvc2017-amd64-release.zip
       - unzip libzlib-1.2.11-msvc2017-amd64-release.zip -d $HOME/zlib
       - export PATH=$PATH:$HOME/apache-maven-3.6.1/bin:$HOME/$JAVA_HOME/bin
-      - export CMAKE_ARGS="-DZLIB_ROOT=$HOME/zlib -DZLIB_LIBRARY=$HOME/zlib/lib/zlib.lib -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_INCLUDEDIR=$HOME/boost_1_68_0 -DBOOST_LIBRARYDIR=$HOME/boost_1_68_0/lib64-msvc-14.1 -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DGODEC_ADDITIONAL_INCLUDE_DIRS=C:/Python37/lib/site-packages/numpy/core/include"
+      - export CMAKE_ARGS="-DZLIB_ROOT=$HOME/zlib -DZLIB_LIBRARY=$HOME/zlib/lib/zlib.lib -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_INCLUDEDIR=$HOME/boost_1_68_0 -DBOOST_LIBRARYDIR=$HOME/boost_1_68_0/lib64-msvc-14.1 -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DGODEC_ADDITIONAL_INCLUDE_DIRS=C:/Python38/lib/site-packages/numpy/core/include"
       - export MY_MAKE_COMMAND="\"$MY_CMAKE\" --build . --target install --config Release"
 
 script:
