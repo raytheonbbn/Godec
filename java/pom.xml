@@ -34,13 +34,13 @@
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-util</artifactId>
                 <optional>true</optional>
-                <version>9.2.9.v20150224</version>
+                <version>9.4.21.v20190926</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-server</artifactId>
                 <optional>true</optional>
-                <version>9.2.9.v20150224</version>
+                <version>9.4.21.v20190926</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.gson</groupId>
