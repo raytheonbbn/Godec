@@ -180,7 +180,7 @@ unordered_map<std::string, DecoderMessage_ptr> TimeStreams::getNewCoherent(int64
                 }
                 ss << std::endl;
             }
-            GODEC_INFO << ss;
+            GODEC_INFO << ss.str();
         }
 #endif
         // Can we slice all messages at this time?
