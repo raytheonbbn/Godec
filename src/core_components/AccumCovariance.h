@@ -1,12 +1,16 @@
 #pragma once
 
 #include <godec/HelperFuncs.h>
+#include <iostream>
 
 namespace Godec {
 
 template<typename MatrixType>
 MatrixType pinv(const MatrixType &a, double epsilon = std::numeric_limits<double>::epsilon()) {
     Eigen::JacobiSVD<MatrixType> svd(a, Eigen::ComputeThinU | Eigen::ComputeThinV);
+    if (svd.nonzeroSingularValues() == 0) {
+        return Matrix::Identity(a.rows(), a.cols());
+    }
     double tolerance = epsilon * std::max(a.cols(), a.rows()) *svd.singularValues().array().abs()(0);
     return svd.matrixV() *  (svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0).matrix().asDiagonal() * svd.matrixU().adjoint();
 }
