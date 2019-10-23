@@ -82,7 +82,11 @@ Matrix AccumCovariance::getInvCovariance(bool biased) {
     if (invCovarIsCurrent && currentInvCovarBias == biased) return currentInvCovar;
     if (mType == Diagonal) {
         currentInvCovar = getCovariance(biased);
-        currentInvCovar.diagonal() = currentInvCovar.diagonal().array().inverse();
+        if (currentInvCovar.diagonal().array().abs().minCoeff() > std::numeric_limits<double>::epsilon()) {
+            currentInvCovar.diagonal() = currentInvCovar.diagonal().array().inverse();
+        } else {
+            currentInvCovar = Matrix::Identity(currentInvCovar.rows(), currentInvCovar.cols());
+        }
     } else {
         currentInvCovar = pinv(getCovariance(biased));
     }
