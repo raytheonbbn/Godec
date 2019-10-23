@@ -216,10 +216,12 @@ void parseAnalistLine(std::string& analistFileLine, std::string& waveFile, std::
         if (lineEl.compare("") == 0 || lineEl.empty()) continue;
         else if (lineEl == "-c") {
             std::string channelString;
+            channels.resize(0);
             iss >> channelString;
             std::vector<std::string> channelEls;
             boost::split(channelEls, channelString, boost::is_any_of(","));
             for(int idx = 0; idx < channelEls.size(); idx++) {
+                if (channelEls[idx] == "") continue;
                 channels.push_back(boost::lexical_cast<int>(channelEls[idx]));
             }
         } else if (lineEl == "-t") {

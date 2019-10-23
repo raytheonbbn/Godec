@@ -160,7 +160,7 @@ void AudioPreProcessorComponent::ProcessMessage(const DecoderMessageBlock& msgBl
         sampleRate = audioMsg->mSampleRate;
         audioVecs.push_back(audioMsg->mAudio);
         vtlStretch = audioMsg->getDescriptor("vtl_stretch") == "" ? vtlStretch : boost::lexical_cast<float>(audioMsg->getDescriptor("vtl_stretch"));
-    // message is in BinaryDecoderMessage format, need to decode first
+        // message is in BinaryDecoderMessage format, need to decode first
     } else if (audioBaseMsg->getUUID() == UUID_BinaryDecoderMessage) {
         auto binaryMsg =msgBlock.get<BinaryDecoderMessage>(SlotStreamedAudio);
         auto& binaryData = binaryMsg->mData;
@@ -206,6 +206,9 @@ void AudioPreProcessorComponent::ProcessMessage(const DecoderMessageBlock& msgBl
         }
     }
 
+    // Maybe at some point this will be supported? It's not clear though what the timestamps would be if you suddenly have a new output stream that didn't exist before
+    if (numChannels != zeroMean.size()) GODEC_ERR << getLPId() << ": Number of incoming channels changed mid-stream (from " << zeroMean.size() << " to " << numChannels << "). This is currently not supported";
+
     // Resample
     std::vector<Vector> resampledAudio(numChannels);
     for (int channelIdx = 0; channelIdx < numChannels; channelIdx++) {
@@ -225,7 +228,6 @@ void AudioPreProcessorComponent::ProcessMessage(const DecoderMessageBlock& msgBl
             resampledAudio[channelIdx] = audioVecs[channelIdx];
         }
     }
-
 
     mUttReceivedResampledAudio += resampledAudio[0].size();
 
