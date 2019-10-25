@@ -129,7 +129,7 @@ link_directories(
   )
 
 file(WRITE "${PROJECT_SOURCE_DIR}/src/include/godec/version.h" "#pragma once\n")
-if (VERSION_STRING STREQUAL "")
+if ("${VERSION_STRING}" STREQUAL "")
   # Use Git SHA as version
   execute_process(COMMAND git rev-parse --short HEAD OUTPUT_VARIABLE VERSION_STRING)
   string(REGEX REPLACE "[\ \n]+" "" VERSION_STRING "${VERSION_STRING}")

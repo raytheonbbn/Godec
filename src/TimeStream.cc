@@ -59,19 +59,19 @@ SingleTimeStream::SingleTimeStream() {
 // Just sandwich functions that call the message-specific canSliceAt and sliceOut
 bool SingleTimeStream::canSliceAt(uint64_t sliceTime, bool verbose, std::string& id) {
     if (size() == 0) return false;
-#ifdef DEBUG
+    auto ptr = const_cast<DecoderMessage*>((*this)[0].get());
+    if (sliceTime > ptr->getTime()) GODEC_ERR << id << ": We should not slice past the first message: sliceTime (" << sliceTime << ") can not be greater than message time (" << ptr->getTime() << ")";
+    bool decision = ptr->canSliceAt(sliceTime, *this, mStreamOffset, verbose);
     if (verbose) {
         std::stringstream verboseStr;
-        verboseStr << "Checking stream slicing " << (*this)[0]->describeThyself()
-                   << ", " << sliceTime << " sliceTime, "
-                   << ", " << (*this)[0]->getTime() << " (*this)[0]->getTime()"
+        verboseStr << "canSliceAt: Asking msg " << (*this)[0]->describeThyself()
+                   << ", sliceTime=" << sliceTime
+                   << ", (*this)[0]->getTime()=" << (*this)[0]->getTime()
+                   << ", decision=" << b2s(decision)
                    << std::endl;
         GODEC_INFO << verboseStr.str();
     }
-#endif
-    auto ptr = const_cast<DecoderMessage*>((*this)[0].get());
-    if (sliceTime > ptr->getTime()) GODEC_ERR << id << ": We should not slice past the first message: sliceTime (" << sliceTime << ") can not be greater than message time (" << ptr->getTime() << ")";
-    return ptr->canSliceAt(sliceTime, *this, mStreamOffset, verbose);
+    return decision;
 }
 
 bool SingleTimeStream::sliceOut(uint64_t sliceTime, DecoderMessage_ptr& sliceMsg, bool verbose, std::string& id) {
@@ -158,7 +158,6 @@ unordered_map<std::string, DecoderMessage_ptr> TimeStreams::getNewCoherent(int64
     if (sliceTimes.size() > 0) {
         // We really only look at the first slice time in the list
         uint64_t sliceTime = *(sliceTimes.begin());
-#ifdef DEBUG
         if (mVerbose) {
             std::stringstream ss;
             ss << "Trying to slice at time  " << sliceTime << ":" << std::endl;
@@ -182,7 +181,6 @@ unordered_map<std::string, DecoderMessage_ptr> TimeStreams::getNewCoherent(int64
             }
             GODEC_INFO << ss.str();
         }
-#endif
         // Can we slice all messages at this time?
         bool canSliceAllAtFirstTime = true;
         for (auto slotIt = mStream.begin(); slotIt != mStream.end(); slotIt++) {
@@ -227,7 +225,6 @@ unordered_map<std::string, DecoderMessage_ptr> TimeStreams::getNewCoherent(int64
                 outList[slot] = sliceMsg;
             }
         }
-#if DEBUG
         if (mVerbose) {
             std::stringstream verboseBuff;
             verboseBuff << "New coherent:" << std::endl;
@@ -237,8 +234,6 @@ unordered_map<std::string, DecoderMessage_ptr> TimeStreams::getNewCoherent(int64
             }
             GODEC_INFO << verboseBuff.str();
         }
-#endif
-
         previousCutoff = (int64_t) sliceTime;
     }
     return outList;

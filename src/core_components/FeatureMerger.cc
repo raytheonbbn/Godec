@@ -1,4 +1,6 @@
 #include "FeatureMerger.h"
+#include <boost/algorithm/string/join.hpp>
+#include <boost/range/adaptor/transformed.hpp>
 
 namespace Godec {
 
@@ -60,7 +62,7 @@ void FeatureMergerComponent::ProcessMessage(const DecoderMessageBlock& msgBlock)
             int64_t msgLength = audioMsg->getTime()-msgBlock.getPrevCutoff();
             std::vector<uint64_t> featTimeStamps;
             for(int sampleIdx = 0; sampleIdx < feats.cols(); sampleIdx++) {
-                uint64_t t = msgBlock.getPrevCutoff()+1+msgLength*(sampleIdx/(double)feats.cols());
+                uint64_t t = msgBlock.getPrevCutoff()+msgLength*((sampleIdx+1)/(double)feats.cols());
                 featTimeStamps.push_back(t);
             }
             featureTimestamps = featTimeStamps;
