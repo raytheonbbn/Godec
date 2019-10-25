@@ -100,7 +100,11 @@ LoopProcessor::LoopProcessor(std::string id, ComponentGraphConfig* pt) : mVerbos
     }
 
     mInputChannel.setIdVerbose(mId, mVerbose);
-    mFullStream.setIdVerbose(id, mVerbose);
+    bool debugSlicing = false;
+    if (pt->get_optional_READ_DECLARATION_BEFORE_USE<bool>("debug_slicing")) {
+        debugSlicing = pt->get<bool>("debug_slicing", "Show how the component tries to slice the messages");
+    }
+    mFullStream.setIdVerbose(id, debugSlicing);
     mPt = pt;
 }
 

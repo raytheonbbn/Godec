@@ -23,6 +23,8 @@ Whether the network halts somewhere, or you get
 
 incorrect timestamps are likely at fault. Monitor the incoming messages and look at how the message streams stack up next to each other (the `should not slice past` error actually prints that stack) and try to retrace why Godec couldn't find a way to slice a contiguous block of messages out.
 
+If you want to see how a component tries to slice the incoming messages, set the optional "debug_slicing" JSON option to "true". The output will describe how the messages are being asked to slice at a certain time, and which messages prevents it.
+
 `TimeStream structure was not empty at shutdown` is a specific error message that indicates a component had received all its input data, but was not able to entirely process the received messages because they couldn't be sliced out. This can have more than one reason, one being the usual "upstream timestamps are wrong", the other that an upstream component didn't account for all stream time (which is a requirement).
 
 ### Profile
