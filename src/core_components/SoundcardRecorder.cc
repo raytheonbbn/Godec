@@ -378,7 +378,7 @@ LinuxAudioRecorder::LinuxAudioRecorder(std::string cardId, float samplingRate, i
     }
     mChunkSize = frames;
     snd_pcm_hw_params_get_buffer_time(hw_params, &uintVal, &dir);
-    std::cout << "Capture latency is " << ((double)uintVal/1000) << "ms" << std::endl;
+    if (godecComp->isVerbose()) std::cout << godecComp->getLPId() << ": Capture latency is " << ((double)uintVal/1000) << "ms" << std::endl;
     tttr("Couldn't set HW params", snd_pcm_hw_params (capture_handle, hw_params));
     tttr("Couldn't prepare sound card", snd_pcm_prepare (capture_handle));
 }
