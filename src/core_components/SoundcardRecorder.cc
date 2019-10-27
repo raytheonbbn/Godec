@@ -332,7 +332,12 @@ void AndroidAudioRecorder::stopCapture() {
 
 #else
 
-bool tttr(std::string s, bool b) {if (!b) GODEC_ERR << s << std::endl; return b;}
+void tttr(std::string s, int error) {
+    if (error < 0) {
+        std::cerr << s << " reason=" << snd_strerror(error) << std::endl;
+        exit(-1);
+    }
+}
 
 LinuxAudioRecorder::LinuxAudioRecorder(std::string cardId, float samplingRate, int numChannels, int sampleDepth, int chunkSizeInSamples, SoundcardRecorderComponent *godecComp) {
     mSamplingRate = samplingRate;
@@ -354,16 +359,18 @@ LinuxAudioRecorder::LinuxAudioRecorder(std::string cardId, float samplingRate, i
 
     unsigned int desiredSamplingRate = samplingRate;
 
-    tttr("Couldn't open soundcard", snd_pcm_open (&capture_handle, cardId.c_str(), SND_PCM_STREAM_CAPTURE, 0) >= 0);
-    tttr("Couldn't alloc params", snd_pcm_hw_params_malloc (&hw_params) >= 0);
-    tttr("Couldn't fill HW params",snd_pcm_hw_params_any (capture_handle, hw_params) >= 0);
-    tttr("Couldn't set HW params access", snd_pcm_hw_params_set_access (capture_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED) >= 0);
-    tttr("Couldn't set the sample format", snd_pcm_hw_params_set_format (capture_handle, hw_params, sampleFormat) >= 0);
-    tttr("Couldn't set number of channels", snd_pcm_hw_params_set_channels (capture_handle, hw_params, numChannels) >= 0);
-    tttr("Couldn't set sampling rate", snd_pcm_hw_params_set_rate_near (capture_handle, hw_params, &desiredSamplingRate, 0) >= 0);
+    tttr("Couldn't open soundcard", snd_pcm_open (&capture_handle, cardId.c_str(), SND_PCM_STREAM_CAPTURE, 0));
+    tttr("Couldn't alloc params", snd_pcm_hw_params_malloc (&hw_params));
+    tttr("Couldn't fill HW params",snd_pcm_hw_params_any (capture_handle, hw_params));
+    tttr("Couldn't set HW params access", snd_pcm_hw_params_set_access (capture_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED));
+    tttr("Couldn't set the sample format", snd_pcm_hw_params_set_format (capture_handle, hw_params, sampleFormat));
+    tttr("Couldn't set number of channels", snd_pcm_hw_params_set_channels (capture_handle, hw_params, numChannels));
+    tttr("Couldn't set sampling rate", snd_pcm_hw_params_set_rate_near (capture_handle, hw_params, &desiredSamplingRate, 0));
     if ((unsigned int)samplingRate != desiredSamplingRate) GODEC_ERR << "Desired sampling rate not available. ALSA says " << desiredSamplingRate << " is nearest";
-    tttr("Couldn't set HW params", snd_pcm_hw_params (capture_handle, hw_params) >= 0);
-    tttr("Couldn't prepare sound card", snd_pcm_prepare (capture_handle) >= 0);
+    snd_pcm_uframes_t frames;
+    tttr("Couldn't set periods", snd_pcm_hw_params_set_period_size (capture_handle, hw_params, chunkSizeInSamples, 0));
+    tttr("Couldn't set HW params", snd_pcm_hw_params (capture_handle, hw_params));
+    tttr("Couldn't prepare sound card", snd_pcm_prepare (capture_handle));
 }
 
 void LinuxAudioRecorder::startCapture() {
