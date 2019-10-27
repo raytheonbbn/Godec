@@ -3,13 +3,36 @@ import re
 import matplotlib
 import matplotlib.pyplot as plt
 import decimal
+import argparse
 
+# This script takes in logs written by components (set "log_fiile" param to a value and "verbose" to true for each component) and outputs latency graphs via matplotlib
+# The script has two output modes: --realtime and --streamtime
+# --realtime: This will show the real-time latency incurred between the "Pusher" (the first component seeing pushing in the logs) and a given components
+# --streamtime: This gives you the streamtime latency, and actually gives you a measure of the inherent algorithmic latency of the daisy-chain of components. Note that for this to work, you need to set the feeding component slow enough so that after a new chunk has been pushed, all subsequent components have settled down
+# use --exclude to exclude certain messages based on their slot (the value inside "[...]" in the messages)
 
-if (len(sys.argv) < 2):
-  print("Usage: AnalyzeLatency.py <log file list>\nThis script measures the latency between Godec components. Set the respective components' verbosity to true and set the log_file parameter, then run the script on the log files")
+parser = argparse.ArgumentParser(description='This script measures the latency between Godec components. Set the respective components\' verbosity to true and set the log_file parameter, then run the script on the log files')
+parser.add_argument('logfiles', metavar='<log files>', type=str, nargs='+', help='the list of logfiles')
+parser.add_argument('--realtime', action='store_true', help='Show realtime latencies')
+parser.add_argument('--streamtime', action='store_true', help='Show streamtime, algorithmic latencies (note this presumes runnning Godec intentionally with very slow feeding so that all components have settled down before the next chunk gets fed')
+parser.add_argument('--yfac', help='Value to multiply the y-axis by, e.g. to convert stream ticks into seconds')
+parser.add_argument('--exclude', help='Ignore messages whose slot names matches this regexp')
+
+args = parser.parse_args()
+
+if ((not args.realtime) and (not args.streamtime)):
+  print(str("Need to set either --realtime or --streamtime"))
   exit(-1)
 
-def ReadLogFile(logFname):
+excre = None
+if (args.exclude != None):
+  excre = re.compile(args.exclude)
+
+yfac = 1
+if (args.yfac != None):
+  yfac = decimal.Decimal(args.yfac)
+
+def ReadLogFile(logFname, excre):
   rex = re.compile("^(.+)\ (.+)\(([0-9\.]+)\):\ ([^\s]+).+\[([^\]]+),([^\]]+)\]")
   event_list = list()
   with open(logFname) as fp:
@@ -26,56 +49,72 @@ def ReadLogFile(logFname):
           new_dict["action"] = groups[3]
           new_dict["slot"] = groups[4]
           new_dict["streamtime"] = long(groups[5])
+          if ((new_dict["action"] != "Pushing") or excre.match(new_dict["slot"])):
+            continue
           event_list.append(new_dict)
   return event_list
 
 # Read in all log files
 all_events = list()
-for argIdx in range(1, len(sys.argv)):
-  all_events.extend(ReadLogFile(sys.argv[argIdx]))
+for logfile in args.logfiles:
+  all_events.extend(ReadLogFile(logfile, excre))
 
 def cmpFunc(val1, val2):
-  t1 = val1["realtime"] 
-  t2 = val2["realtime"] 
-  if (t1 == t2):
-    a1 = val1["action"] 
-    a2 = val2["action"] 
-    return cmp(a1,a2)
-  return cmp(t1,t2)
+  rt1 = val1["realtime"] 
+  rt2 = val2["realtime"] 
+  if (rt1 == rt2):
+    st1 = val1["streamtime"] 
+    st2 = val2["streamtime"] 
+    return cmp(st2,st1) # See high streamtimes first
+  else:
+    return cmp(rt1,rt2)
 
 all_events.sort(cmp = cmpFunc)
 
-for event in all_events:
-  if (event["action"] == "Pushing"):
-    AName = event["name"]
-    ASlot = event["slot"]
-    break
+pusherName = all_events[0]["name"]
+pusherSlot = all_events[0]["slot"]
 
-print("Start-point LP and slot: "+AName+":"+ASlot)
+print("Start-point LP and slot: "+pusherName+":"+pusherSlot)
 
 realTimeOffset = 0
-lastATime = 0
+pusherLastRealtime = 0
+pusherLastStreamtime = 0
 tag2Realtime = dict()
-tag2Latency = dict()
+tag2RealtimeLatency = dict()
+tag2StreamtimeLatency = dict()
 for event in all_events:
-  #print("event: "+str(event["realtime"])+" streamtime="+str(event["streamtime"])+" name="+event["name"]+" action="+event["action"])
+  name = event["name"]
+  slot = event["slot"]
+  realtime = event["realtime"]
+  streamtime = event["streamtime"]
+  #print("event: "+str(realtime)+" streamtime="+str(streamtime)+" name="+name)
   if (realTimeOffset == 0): 
-    realTimeOffset = event["realtime"]
-  if (event["name"] == AName and event["action"] == "Pushing" and event["slot"] == ASlot):
-    lastATime = event["realtime"]
-  if (lastATime != 0 and event["action"] == "incoming" and event["name"] != AName):
-    tag = event["name"]+"["+event["slot"]+"]"
-    latency = event["realtime"]-lastATime
+    realTimeOffset = realtime
+  if (name == pusherName and slot == pusherSlot):
+    pusherLastRealtime = realtime
+    pusherLastStreamtime = streamtime
+  if (pusherLastRealtime != 0 and name != pusherName):
+    tag = name+"["+slot+"]"
+    realtime_latency = yfac*(realtime-pusherLastRealtime)
+    streamtime_latency = yfac*(pusherLastStreamtime-streamtime)
+    #if (streamtime_latency > 20000):
+    #  print("pusher: pusherLastRealtime="+str(pusherLastRealtime)+" pusherLastStreamtime"+str(pusherLastStreamtime))
+    #  print(str(streamtime_latency))
     if tag not in tag2Realtime:
       tag2Realtime[tag] = list()
-      tag2Latency[tag] = list()
-    time = event["realtime"]-realTimeOffset 
-    tag2Realtime[tag].append(time)
-    tag2Latency[tag].append(latency)
+      tag2RealtimeLatency[tag] = list()
+      tag2StreamtimeLatency[tag] = list()
+    offset_realtime = realtime-realTimeOffset 
+    tag2Realtime[tag].append(offset_realtime)
+    tag2RealtimeLatency[tag].append(realtime_latency)
+    tag2StreamtimeLatency[tag].append(streamtime_latency)
 
 fig, ax = plt.subplots()
 for tag in tag2Realtime:
-  ax.plot(tag2Realtime[tag], tag2Latency[tag], label=tag)
+  if (args.realtime):
+    ax.plot(tag2Realtime[tag], tag2RealtimeLatency[tag], label=tag)
+  else:
+    ax.plot(tag2Realtime[tag], tag2StreamtimeLatency[tag], label=tag)
 
 plt.legend()
 plt.show()
