@@ -29,6 +29,7 @@ class PythonTest:
       if (self.verbose):
         print("ProcessMessage was called with features "+str(msgHash['features']['features']))
       msgHash['features']['features'] *= self.mult_fac
+      del msgHash['conversation_state']
   
     except:
       print(traceback.format_exc())
