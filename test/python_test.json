@@ -27,6 +27,7 @@
     "expected_outputs": "features",
     "inputs":
     {
+      "conversation_state": "convstate",
       "features": "features"
     },
     "outputs":

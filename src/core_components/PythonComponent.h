@@ -12,7 +12,7 @@ class PythonComponent : public LoopProcessor {
     PythonComponent(std::string id, ComponentGraphConfig* configPt);
     ~PythonComponent();
 
-    virtual bool RequiresConvStateInput() override { return false; }
+    //virtual bool RequiresConvStateInput() override { return false; }
 
   private:
     void ProcessMessage(const DecoderMessageBlock& msgBlock) override;
