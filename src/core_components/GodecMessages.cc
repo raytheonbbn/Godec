@@ -165,12 +165,54 @@ DecoderMessage_ptr AudioDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
 
 #ifndef ANDROID
 PyObject* AudioDecoderMessage::toPython() {
-    GODEC_ERR << "AudioDecoderMessage::toPython not implemented yet";
-    return nullptr;
+    GodecMessages_init_numpy();
+    PyObject* dict = PyDict_New();
+
+    PyDict_SetItemString(dict, "type", PyUnicode_FromString("AudioDecoderMessage"));
+    PyDict_SetItemString(dict, "tag", PyUnicode_FromString(getTag().c_str()));
+    PyDict_SetItemString(dict, "sample_rate", PyFloat_FromDouble(mSampleRate));
+    PyDict_SetItemString(dict, "ticks_per_sample", PyFloat_FromDouble(mTicksPerSample));
+    PyDict_SetItemString(dict, "time", PyLong_FromLong(getTime()));
+    PyDict_SetItemString(dict, "descriptor", PyUnicode_FromString(getFullDescriptorString().c_str()));
+
+    npy_intp featDims[1] {mAudio.size()};
+    PyObject* pAudio = PyArray_SimpleNew(1, featDims, NPY_FLOAT32);
+    if (pAudio == NULL) GODEC_ERR << "Could not allocate feature memory";
+    for(int idx = 0; idx < mAudio.size(); idx++) {
+        *((float*)PyArray_GETPTR1(pAudio, idx)) = mAudio(idx);
+    }
+    PyDict_SetItemString(dict, "audio", pAudio);
+    return dict;
 }
+
 DecoderMessage_ptr AudioDecoderMessage::fromPython(PyObject* pMsg) {
-    GODEC_ERR << "AudioDecoderMessage::fromPython not implemented yet";
-    return DecoderMessage_ptr();
+    GodecMessages_init_numpy();
+    std::string tag;
+    uint64_t time;
+    std::string descriptorString;
+    PythonGetDecoderMessageVals(pMsg, tag, time, descriptorString);
+
+    PyObject* pSampleRate = PyDict_GetItemString(pMsg,"sample_rate");
+    if (pSampleRate == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'sample_rate'!";
+    float sampleRate = boost::lexical_cast<float>(PyUnicode_AsUTF8(pSampleRate));
+
+    PyObject* pTicksPerSample = PyDict_GetItemString(pMsg,"ticks_per_sample");
+    if (pTicksPerSample == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'ticks_per_sample'!";
+    float ticksPerSample = boost::lexical_cast<float>(PyUnicode_AsUTF8(pTicksPerSample));
+
+    // matrix
+    PyArrayObject* pAudio = (PyArrayObject*)PyDict_GetItemString(pMsg,"audio");
+    if (pAudio == NULL) GODEC_ERR << "AudioDecoderMessage::fromPython : Dict does not contain field 'audio'!";
+    if (PyArray_NDIM(pAudio) != 1) GODEC_ERR << "AudioDecoderMessage::fromPython : audio element is not one-dimensional! Dimension is " << PyArray_NDIM(pAudio);
+    npy_intp* pAudioDims = PyArray_SHAPE(pAudio);
+    Vector audioVector(pAudioDims[0]);
+    for(int idx = 0; idx < pAudioDims[0]; idx++) {
+        audioVector(idx) = *((float*)PyArray_GETPTR1(pAudio, idx));
+    }
+
+    DecoderMessage_ptr outMsg = AudioDecoderMessage::create(time, audioVector.data(), audioVector.size(), sampleRate, ticksPerSample);
+    (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(descriptorString);
+    return outMsg;
 }
 #endif
 
@@ -854,12 +896,45 @@ DecoderMessage_ptr ConversationStateDecoderMessage::fromJNI(JNIEnv* env, jobject
 
 #ifndef ANDROID
 PyObject* ConversationStateDecoderMessage::toPython() {
-    GODEC_ERR << "ConversationStateDecoderMessage::toPython not implemented yet";
-    return nullptr;
+    GodecMessages_init_numpy();
+    PyObject* dict = PyDict_New();
+
+    PyDict_SetItemString(dict, "type", PyUnicode_FromString("ConversationStateDecoderMessage"));
+    PyDict_SetItemString(dict, "tag", PyUnicode_FromString(getTag().c_str()));
+    PyDict_SetItemString(dict, "utterance_id", PyUnicode_FromString(mUtteranceId.c_str()));
+    PyDict_SetItemString(dict, "convo_id", PyUnicode_FromString(mConvoId.c_str()));
+    PyDict_SetItemString(dict, "last_chunk_in_utt", mLastChunkInUtt ? Py_True : Py_False);
+    PyDict_SetItemString(dict, "last_chunk_in_convo", mLastChunkInConvo ? Py_True : Py_False);
+    PyDict_SetItemString(dict, "time", PyLong_FromLong(getTime()));
+    PyDict_SetItemString(dict, "descriptor", PyUnicode_FromString(getFullDescriptorString().c_str()));
+    return dict;
 }
 DecoderMessage_ptr ConversationStateDecoderMessage::fromPython(PyObject* pMsg) {
-    GODEC_ERR << "ConversationStateDecoderMessage::fromPython not implemented yet";
-    return DecoderMessage_ptr();
+    GodecMessages_init_numpy();
+    std::string tag;
+    uint64_t time;
+    std::string descriptorString;
+    PythonGetDecoderMessageVals(pMsg, tag, time, descriptorString);
+
+    PyObject* pUttId = PyDict_GetItemString(pMsg,"utterance_id");
+    if (pUttId == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'utterance_id'!";
+    std::string uttId = PyUnicode_AsUTF8(pUttId);
+
+    PyObject* pConvoId = PyDict_GetItemString(pMsg,"convo_id");
+    if (pConvoId == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'convo_id'!";
+    std::string convoId = PyUnicode_AsUTF8(pConvoId);
+
+    PyObject* pLastChunkInUtt = PyDict_GetItemString(pMsg,"last_chunk_in_utt");
+    if (pLastChunkInUtt == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'last_chunk_in_utt'!";
+    bool lastChunkInUtt = pLastChunkInUtt == Py_True ? true : false;
+
+    PyObject* pLastChunkInConvo = PyDict_GetItemString(pMsg,"last_chunk_in_convo");
+    if (pLastChunkInConvo == nullptr) GODEC_ERR << "Incoming Python message dict does not contain field 'last_chunk_in_convo'!";
+    bool lastChunkInConvo = pLastChunkInConvo  == Py_False ? true : false;
+
+    DecoderMessage_ptr outMsg = ConversationStateDecoderMessage::create(time, uttId, lastChunkInUtt, convoId, lastChunkInConvo);
+    (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(descriptorString);
+    return outMsg;
 }
 #endif
 
