@@ -60,6 +60,7 @@ DecoderMessage_ptr AudioDecoderMessage::create(uint64_t _time, const float* _aud
 
 
 DecoderMessage_ptr AudioDecoderMessage::clone() const { return  DecoderMessage_ptr(new AudioDecoderMessage(*this)); }
+
 bool AudioDecoderMessage::mergeWith(DecoderMessage_ptr msg, DecoderMessage_ptr &remainingMsg, bool verbose) {
     auto newAudioMsg = boost::static_pointer_cast<const AudioDecoderMessage>(msg);
     bool canBeMerged = true;
@@ -78,16 +79,21 @@ bool AudioDecoderMessage::mergeWith(DecoderMessage_ptr msg, DecoderMessage_ptr &
     setTime(msg->getTime());
     return false;
 }
+
 bool AudioDecoderMessage::canSliceAt(uint64_t sliceTime, std::vector<DecoderMessage_ptr>& msgList, uint64_t streamStartOffset, bool verbose) {
-    bool canSlice = (((int64_t)getTime()-(int64_t)sliceTime) % (int64_t)round(mTicksPerSample) == 0);
-    return canSlice;
+    if (getTime() == (int64_t)sliceTime) return true;
+    int64_t audioLength = (int64_t)getTime()-(int64_t)sliceTime+1;
+    double remainder = fmod((double)audioLength, mTicksPerSample);
+    double threshold = 1.0/(2*mTicksPerSample);
+    if ((remainder < threshold) || ((1.0-remainder) < threshold)) return true;
+    return false;
 }
-bool AudioDecoderMessage::sliceOut(uint64_t sliceTime, DecoderMessage_ptr& sliceMsg,
-                                   std::vector<DecoderMessage_ptr>& msgList, int64_t streamStartOffset, bool verbose) {
+
+bool AudioDecoderMessage::sliceOut(uint64_t sliceTime, DecoderMessage_ptr& sliceMsg, std::vector<DecoderMessage_ptr>& msgList, int64_t streamStartOffset, bool verbose) {
     auto firstMsg = boost::static_pointer_cast<AudioDecoderMessage>(boost::const_pointer_cast<DecoderMessage>(msgList[0]));
     uint64_t messageTimeLength = firstMsg->getTime() - streamStartOffset;
     uint64_t timeToSliceOutOfMessage = sliceTime - streamStartOffset;
-    double frac = (double)timeToSliceOutOfMessage / (double)messageTimeLength;
+    double frac = (getTime() == (int64_t)sliceTime) ? 1.0 : (double)timeToSliceOutOfMessage / (double)messageTimeLength;
     uint64_t audioToRemove = (uint64_t)round(frac*firstMsg->mAudio.size());
     sliceMsg = AudioDecoderMessage::create(sliceTime, firstMsg->mAudio.data(), audioToRemove, firstMsg->mSampleRate, firstMsg->mTicksPerSample);
     (boost::const_pointer_cast<DecoderMessage>(sliceMsg))->setFullDescriptorString(firstMsg->getFullDescriptorString());
