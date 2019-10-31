@@ -1,5 +1,6 @@
 #include "AudioPreProcessor.h"
 #include "godec/ComponentGraph.h"
+#include <iomanip>
 
 namespace Godec {
 
@@ -128,7 +129,7 @@ AudioPreProcessorComponent::AudioPreProcessorComponent(std::string id, Component
     mUttReceivedRawAudio = 0;
     mUttReceivedResampledAudio = 0;
     mUttProducedAudio = 0;
-    mUttStartStreamOffset = 0;
+    mUttStartStreamOffset = -1;
 
     mUpdateStatsHop = 0.25*mTargetSamplingRate; // Update stats every quarter of a second
 
@@ -154,10 +155,12 @@ void AudioPreProcessorComponent::ProcessMessage(const DecoderMessageBlock& msgBl
     int numChannels = 1;
     std::vector<Vector> audioVecs;
 
+    double inputTicksPerSample;
     // If the message is in AudioDecoderMessage format, we already got the float values
     if (audioBaseMsg->getUUID() == UUID_AudioDecoderMessage) {
         auto audioMsg =msgBlock.get<AudioDecoderMessage>(SlotStreamedAudio);
         sampleRate = audioMsg->mSampleRate;
+        inputTicksPerSample = audioMsg->mTicksPerSample;
         audioVecs.push_back(audioMsg->mAudio);
         vtlStretch = audioMsg->getDescriptor("vtl_stretch") == "" ? vtlStretch : boost::lexical_cast<float>(audioMsg->getDescriptor("vtl_stretch"));
         // message is in BinaryDecoderMessage format, need to decode first
@@ -187,11 +190,12 @@ void AudioPreProcessorComponent::ProcessMessage(const DecoderMessageBlock& msgBl
                 }
             }
         }
+        inputTicksPerSample = (convStateMsg->getTime()-mUttStartStreamOffset)/(double)(mUttReceivedRawAudio+audioVecs[0].size());
     }
 
     mUttReceivedRawAudio += audioVecs[0].size();
-    double inputTimePerSample = (convStateMsg->getTime() - mUttStartStreamOffset + 1) / (double)mUttReceivedRawAudio;
-    double outputTimePerSample = inputTimePerSample*(sampleRate / mTargetSamplingRate);
+    double outputTimePerSample = inputTicksPerSample*(sampleRate / mTargetSamplingRate);
+    if (isVerbose()) std::cout << std::setprecision(std::numeric_limits<long double>::digits10 + 1) << getLPId() << ": " << inputTicksPerSample << "*" << sampleRate << "/" << mTargetSamplingRate << "=" << outputTimePerSample << std::endl;
     if (outputTimePerSample < 1.0)
         GODEC_ERR << "Due to upsampling from " << sampleRate << "Hz to " << mTargetSamplingRate << "Hz, each audio sample will no longer have a unique time stamp. To fix this, add the optional 'time_upsample_factor' to the FileFeeder or Soundcard component (whichever you are using) to a value of ceil(" << mTargetSamplingRate << "/" << sampleRate << ")=" << std::ceil(1.0 / outputTimePerSample) << " or higher. If the audio is fed via an API, it is the responsibility of them to increase the timestamps by that factor. Note that this factor was calculated based on this specific audio chunk's sampling rate. If you have audio with even lower sampling rate, you might have to increase the upsampling factor even more";
 
@@ -258,7 +262,7 @@ void AudioPreProcessorComponent::ProcessMessage(const DecoderMessageBlock& msgBl
             }
 
             if (channelIdx == 0) mUttProducedAudio += preempAudio.size();
-            outTimestamp = mUttStartStreamOffset + (int64_t)round(outputTimePerSample*mUttProducedAudio) - 1;
+            outTimestamp = mUttStartStreamOffset + (int64_t)round(outputTimePerSample*mUttProducedAudio);
             if (convStateMsg->mLastChunkInUtt && getNextChunkSize() == 0) {
                 outTimestamp = convStateMsg->getTime();
             }
@@ -294,7 +298,7 @@ void AudioPreProcessorComponent::ProcessMessage(const DecoderMessageBlock& msgBl
 
     // End of utterance? Reset everything
     if (convStateMsg->mLastChunkInUtt) {
-        mUttStartStreamOffset = outTimestamp + 1;
+        mUttStartStreamOffset = outTimestamp;
         mUttReceivedRawAudio = 0;
         mUttReceivedResampledAudio = 0;
         mUttProducedAudio = 0;
