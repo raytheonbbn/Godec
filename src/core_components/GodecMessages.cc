@@ -1116,17 +1116,17 @@ std::string JsonDecoderMessage::describeThyself() const {
 }
 
 DecoderMessage_ptr JsonDecoderMessage::clone() const {
-    return  DecoderMessage_ptr(new JsonDecoderMessage(*this));
+    return DecoderMessage_ptr(new JsonDecoderMessage(*this));
 }
 
 jobject JsonDecoderMessage::toJNI(JNIEnv *env) {
     jclass JsonDecoderMessageClass = env->FindClass("com/bbn/godec/JsonDecoderMessage");
     jmethodID msgInit = env->GetMethodID(JsonDecoderMessageClass, "<init>", "(Ljava/lang/String;JLjava/lang/String;)V");
-    std::string tag = this->getTag();
-    jlong time = this->getTime();
+    std::string tag = getTag();
+    jlong time = getTime();
     env->PushLocalFrame(3); // jTag, JJsonStr, retObj
     jstring jTag = env->NewStringUTF(tag.c_str());
-    jstring jJsonString = env->NewStringUTF(this->mJson.dump().c_str());
+    jstring jJsonString = env->NewStringUTF(mJson.dump().c_str());
     jobject retObj = env->NewObject(JsonDecoderMessageClass, msgInit, jTag, time, jJsonString);
     return env->PopLocalFrame(retObj);
 }
@@ -1149,12 +1149,31 @@ DecoderMessage_ptr JsonDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
 
 #ifndef ANDROID
 PyObject* JsonDecoderMessage::toPython() {
-    GODEC_ERR << "JsonDecoderMessage::toPython not implemented yet";
-    return nullptr;
+    GodecMessages_init_numpy();
+    PyObject* dict = PyDict_New();
+
+    PyDict_SetItemString(dict, "type", PyUnicode_FromString("JsonDecoderMessage"));
+    PyDict_SetItemString(dict, "tag", PyUnicode_FromString(getTag().c_str()));
+    PyDict_SetItemString(dict, "time", PyLong_FromLong(getTime()));
+    PyDict_SetItemString(dict, "descriptor", PyUnicode_FromString(getFullDescriptorString().c_str()));
+    PyDict_SetItemString(dict, "json", PyUnicode_FromString(mJson.dump().c_str()));
+    return dict;
 }
+
 DecoderMessage_ptr JsonDecoderMessage::fromPython(PyObject* pMsg) {
-    GODEC_ERR << "JsonDecoderMessage::fromPython not implemented yet";
-    return DecoderMessage_ptr();
+    GodecMessages_init_numpy();
+    std::string tag;
+    uint64_t time;
+    std::string descriptorString;
+    PythonGetDecoderMessageVals(pMsg, tag, time, descriptorString);
+
+    PyObject* pJson = PyDict_GetItemString(pMsg,"json");
+    if (pJson == nullptr) GODEC_ERR << "JsonDecoderMessage::fromPython: Passed in dict does not contain 'json' field!";
+    json j = json::parse(PyUnicode_AsUTF8(pJson));
+
+    DecoderMessage_ptr outMsg = JsonDecoderMessage::create(time, j);
+    (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(descriptorString);
+    return outMsg;
 }
 #endif
 
