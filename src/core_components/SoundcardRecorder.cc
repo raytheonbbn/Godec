@@ -358,6 +358,8 @@ LinuxAudioRecorder::LinuxAudioRecorder(std::string cardId, float samplingRate, i
     } else GODEC_ERR << "Unsupported sample depth " << sampleDepth;
 
     unsigned int desiredSamplingRate = samplingRate;
+    unsigned int uintVal;
+    int dir;
 
     tttr("Couldn't open soundcard", snd_pcm_open (&capture_handle, cardId.c_str(), SND_PCM_STREAM_CAPTURE, 0));
     tttr("Couldn't alloc params", snd_pcm_hw_params_malloc (&hw_params));
@@ -367,19 +369,16 @@ LinuxAudioRecorder::LinuxAudioRecorder(std::string cardId, float samplingRate, i
     tttr("Couldn't set number of channels", snd_pcm_hw_params_set_channels (capture_handle, hw_params, numChannels));
     tttr("Couldn't set sampling rate", snd_pcm_hw_params_set_rate_near (capture_handle, hw_params, &desiredSamplingRate, 0));
     if ((unsigned int)samplingRate != desiredSamplingRate) GODEC_ERR << "Desired sampling rate not available. ALSA says " << desiredSamplingRate << " is nearest";
+    tttr("Couldn't set min periods", snd_pcm_hw_params_set_periods(capture_handle, hw_params, 2, 0));
+    snd_pcm_uframes_t frames = chunkSizeInSamples;
     if (chunkSizeInSamples >= 0) {
-        tttr("Couldn't set periods", snd_pcm_hw_params_set_period_size (capture_handle, hw_params, chunkSizeInSamples, 0));
-        mChunkSize = chunkSizeInSamples;
+        tttr("Couldn't set period size", snd_pcm_hw_params_set_period_size_near(capture_handle, hw_params, &frames, 0));
     } else { // Minimum latency
-        snd_pcm_uframes_t frames;
-        unsigned int uintVal;
-        int dir;
-        tttr("Couldn't set min periods", snd_pcm_hw_params_set_periods(capture_handle, hw_params, 2, 0));
-        tttr("Couldn't set period size", snd_pcm_hw_params_set_period_size_first (capture_handle, hw_params, &frames, 0));
-        mChunkSize = frames;
-        snd_pcm_hw_params_get_buffer_time(hw_params, &uintVal, &dir);
-        std::cout << "Capture latency is set to minimum of " << ((double)uintVal/1000) << "ms" << std::endl;
+        tttr("Couldn't set period size", snd_pcm_hw_params_set_period_size_first(capture_handle, hw_params, &frames, 0));
     }
+    mChunkSize = frames;
+    snd_pcm_hw_params_get_buffer_time(hw_params, &uintVal, &dir);
+    std::cout << "Capture latency is " << ((double)uintVal/1000) << "ms" << std::endl;
     tttr("Couldn't set HW params", snd_pcm_hw_params (capture_handle, hw_params));
     tttr("Couldn't prepare sound card", snd_pcm_prepare (capture_handle));
 }
@@ -405,8 +404,10 @@ void LinuxAudioRecorder::ProcessLoop() {
     while (mKeepRunning) {
         ret = snd_pcm_readi(capture_handle, audioBuffer, mChunkSize);
         if (ret < 0) {
-            if (ret == -EPIPE) std::cout << "CXRUN";
-            else if (ret == -EBADFD) GODEC_ERR << "Couldn't read audio, PCM is not in the right state";
+            if (ret == -EPIPE) {
+                std::cout << "CXRUN";
+                tttr("Couldn't prepare sound card", snd_pcm_prepare (capture_handle));
+            } else if (ret == -EBADFD) GODEC_ERR << "Couldn't read audio, PCM is not in the right state";
             else if (ret == -ESTRPIPE) GODEC_ERR << "Couldn't read audio, suspend event occurred";
         }
         mGodecComp->receiveData(mChunkSize, mSamplingRate, mSampleDepth, mNumChannels, audioBuffer);
