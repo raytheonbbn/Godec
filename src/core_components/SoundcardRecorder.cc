@@ -404,21 +404,12 @@ void LinuxAudioRecorder::ProcessLoop() {
     while (mKeepRunning) {
         ret = snd_pcm_readi(capture_handle, audioBuffer, mChunkSize);
         if (ret < 0) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> simplification
             if (ret == -EPIPE) {
                 std::cout << "CXRUN";
                 tttr("Couldn't prepare sound card", snd_pcm_prepare (capture_handle));
             } else if (ret == -EBADFD) GODEC_ERR << "Couldn't read audio, PCM is not in the right state";
-<<<<<<< HEAD
-=======
             if (ret == -EPIPE) std::cout << "CXRUN";
             else if (ret == -EBADFD) GODEC_ERR << "Couldn't read audio, PCM is not in the right state";
->>>>>>> Add low latency support to soundcard reader
-=======
->>>>>>> simplification
             else if (ret == -ESTRPIPE) GODEC_ERR << "Couldn't read audio, suspend event occurred";
         }
         mGodecComp->receiveData(mChunkSize, mSamplingRate, mSampleDepth, mNumChannels, audioBuffer);
