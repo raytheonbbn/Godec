@@ -239,7 +239,12 @@ bool AndroidAudioPlayer::playData(long numSamples, const unsigned char* data) {
 
 #else
 
-bool tttp(std::string s, bool b) {if (!b) GODEC_ERR << s << std::endl; return b;}
+void tttp(std::string s, int error) {
+    if (error < 0) {
+        std::cerr << s << " reason=" << snd_strerror(error) << std::endl;
+        exit(-1);
+    }
+}
 
 LinuxAudioPlayer::LinuxAudioPlayer(std::string cardId, float samplingRate, int numChannels, int sampleDepth) {
     snd_pcm_format_t sampleFormat = SND_PCM_FORMAT_S16_LE;
@@ -255,17 +260,17 @@ LinuxAudioPlayer::LinuxAudioPlayer(std::string cardId, float samplingRate, int n
 
     unsigned int desiredSamplingRate = samplingRate;
 
-    tttp("Couldn't open soundcard", snd_pcm_open (&playback_handle, cardId.c_str(), SND_PCM_STREAM_PLAYBACK, 0) >= 0);
-    tttp("Couldn't alloc params", snd_pcm_hw_params_malloc (&hw_params) >= 0);
-    tttp("Couldn't fill HW params",snd_pcm_hw_params_any (playback_handle, hw_params) >= 0);
-    tttp("Couldn't set HW params access", snd_pcm_hw_params_set_access (playback_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED) >= 0);
-    tttp("Couldn't set the sample format", snd_pcm_hw_params_set_format (playback_handle, hw_params, sampleFormat) >= 0);
-    tttp("Couldn't set number of channels", snd_pcm_hw_params_set_channels (playback_handle, hw_params, numChannels) >= 0);
-    tttp("Couldn't set sampling rate", snd_pcm_hw_params_set_rate_near (playback_handle, hw_params, &desiredSamplingRate, 0) >= 0);
+    tttp("Couldn't open soundcard", snd_pcm_open (&playback_handle, cardId.c_str(), SND_PCM_STREAM_PLAYBACK, 0));
+    tttp("Couldn't alloc params", snd_pcm_hw_params_malloc (&hw_params));
+    tttp("Couldn't fill HW params",snd_pcm_hw_params_any (playback_handle, hw_params));
+    tttp("Couldn't set HW params access", snd_pcm_hw_params_set_access (playback_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED));
+    tttp("Couldn't set the sample format", snd_pcm_hw_params_set_format (playback_handle, hw_params, sampleFormat));
+    tttp("Couldn't set number of channels", snd_pcm_hw_params_set_channels (playback_handle, hw_params, numChannels));
+    tttp("Couldn't set sampling rate", snd_pcm_hw_params_set_rate_near (playback_handle, hw_params, &desiredSamplingRate, 0));
     if ((unsigned int)samplingRate != desiredSamplingRate) GODEC_ERR << "Desired sampling rate not available. ALSA says " << desiredSamplingRate << " is nearest";
-    tttp("Couldn't set HW params", snd_pcm_hw_params (playback_handle, hw_params) >= 0);
-    tttp("Couldn't prepare sound card", snd_pcm_prepare (playback_handle) >= 0);
-    tttp("Couldn't start audio capture", snd_pcm_start(playback_handle) < 0);
+    tttp("Couldn't set HW params", snd_pcm_hw_params (playback_handle, hw_params));
+    tttp("Couldn't prepare sound card", snd_pcm_prepare (playback_handle));
+    tttp("Couldn't start audio playback", snd_pcm_start(playback_handle));
 }
 
 LinuxAudioPlayer::~LinuxAudioPlayer() {}

@@ -14,7 +14,11 @@ if [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
 ASTYLE=$GITROOT/misc/Astyle.exe
 ASTYLERC=`cygpath -w $ASTYLERC | sed 's%\\\\%\/%g'`
 else
-ASTYLE=$GITROOT/misc/astyle
+if ! [ -x "$(command -v astyle)" ]; then
+  ASTYLE=$GITROOT/misc/astyle
+else
+  ASTYLE=astyle
+fi
 fi
 OPTIONS=" --options=$ASTYLERC "
 
