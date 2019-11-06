@@ -268,9 +268,6 @@ LinuxAudioPlayer::LinuxAudioPlayer(std::string cardId, float samplingRate, int n
     tttp("Couldn't set number of channels", snd_pcm_hw_params_set_channels (playback_handle, hw_params, numChannels));
     tttp("Couldn't set sampling rate", snd_pcm_hw_params_set_rate_near (playback_handle, hw_params, &desiredSamplingRate, 0));
     if ((unsigned int)samplingRate != desiredSamplingRate) GODEC_ERR << "Desired sampling rate not available. ALSA says " << desiredSamplingRate << " is nearest";
-    snd_pcm_uframes_t frames;
-    tttp("Couldn't set periods", snd_pcm_hw_params_set_period_size_first(playback_handle, hw_params, &frames, 0));
-    std::cout << cardId << ": period size=" << frames << std::endl;
     tttp("Couldn't set HW params", snd_pcm_hw_params (playback_handle, hw_params));
     tttp("Couldn't prepare sound card", snd_pcm_prepare (playback_handle));
     tttp("Couldn't start audio playback", snd_pcm_start(playback_handle));
