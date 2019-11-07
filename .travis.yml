@@ -70,9 +70,9 @@ matrix:
         ./b2 clean &&\
         ./b2 -j8 -d0 cxxstd=17 cxxflags=-fPIC cflags=-fPIC --without-python link=static threading=multi threadapi=pthread define=BOOST_MATH_DISABLE_FLOAT128 &&\
         export BOOST_ROOT=$HOME/boost_1_68_0 &&\
-        wget -q http://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2 &&\
-        tar jxf 3.3.4.tar.bz2 -C $HOME &&\
-        export EIGEN_ROOT=$HOME/eigen-eigen-5a0156e40feb &&\
+        wget -q http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2 &&\
+        tar jxf 3.3.7.tar.bz2 -C $HOME &&\
+        export EIGEN_ROOT=$HOME/eigen-eigen-323c052e1731 &&\
         export PYTHON_ROOT=/opt/rh/rh-python36/root/ &&\
         export PYTHON_HOME=/opt/rh/rh-python36/root/usr/ &&\
         export CMAKE_ARGS=\"-DBOOST_INCLUDEDIR=\$BOOST_ROOT -DBOOST_LIBRARYDIR=\$BOOST_ROOT/stage/lib/ -DEigen3_INCLUDE_DIRS=\$EIGEN_ROOT -DPYTHON_LIBRARY=\$PYTHON_ROOT/usr/lib64/libpython3.6m.so -DPYTHON_INCLUDE_DIR=\$PYTHON_ROOT/usr/include/python3.6m -DGODEC_ADDITIONAL_INCLUDE_DIRS=\$PYTHON_ROOT/usr/lib64/python3.6/site-packages/numpy/core/include/ \" &&\
@@ -92,20 +92,20 @@ matrix:
           - maven
       
       before_script:
-      - wget -q https://releases.linaro.org/components/toolchain/binaries/7.3-2018.05/armv8l-linux-gnueabihf/gcc-linaro-7.3.1-2018.05-x86_64_armv8l-linux-gnueabihf.tar.xz
-      - tar xf gcc-linaro-7.3.1-2018.05-x86_64_armv8l-linux-gnueabihf.tar.xz -C $HOME
+      - wget -q https://releases.linaro.org/components/toolchain/binaries/7.4-2019.02/armv8l-linux-gnueabihf/gcc-linaro-7.4.1-2019.02-x86_64_armv8l-linux-gnueabihf.tar.xz
+      - tar xf gcc-linaro-7.4.1-2019.02-x86_64_armv8l-linux-gnueabihf.tar.xz -C $HOME
       - wget -q https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.gz
       - tar xf boost_1_68_0.tar.gz -C $HOME
       - cd $HOME/boost_1_68_0
       - ./bootstrap.sh
       - ./b2 clean
-      - "echo \"using gcc : arm : $HOME/gcc-linaro-7.3.1-2018.05-x86_64_armv8l-linux-gnueabihf/bin/armv8l-linux-gnueabihf-g++ ;\" >> project-config.jam"
+      - "echo \"using gcc : arm : $HOME/gcc-linaro-7.4.1-2019.02-x86_64_armv8l-linux-gnueabihf/bin/armv8l-linux-gnueabihf-g++ ;\" >> project-config.jam"
       - ./b2 toolset=gcc-arm -j8 -d0 cxxflags=-fPIC cflags=-fPIC --without-python link=static threading=multi threadapi=pthread define=BOOST_MATH_DISABLE_FLOAT128
       - cd $HOME
       - export BOOST_ROOT=$HOME/boost_1_68_0
-      - wget -q http://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2
-      - tar jxf 3.3.4.tar.bz2 -C $HOME
-      - export EIGEN_ROOT=$HOME/eigen-eigen-5a0156e40feb
+      - wget -q http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2
+      - tar jxf 3.3.7.tar.bz2 -C $HOME
+      - export EIGEN_ROOT=$HOME/eigen-eigen-323c052e1731
       - mkdir $HOME/alsa
       - wget -q http://archive.raspberrypi.org/debian/pool/main/a/alsa-lib/libasound2_1.1.3-5+rpt4_armhf.deb
       - ar x libasound2_1.1.3-5+rpt4_armhf.deb
@@ -145,8 +145,9 @@ matrix:
 
       env: PYTHON_HOME=$HOME/pydev/usr
            PATH=/usr/lib/jvm/java-8-openjdk-amd64/jre/bin:$PATH
-           CXX=$HOME/gcc-linaro-7.3.1-2018.05-x86_64_armv8l-linux-gnueabihf/bin/armv8l-linux-gnueabihf-g++ 
-           PLATFORM=Generic_ARM
+           CXX=$HOME/gcc-linaro-7.4.1-2019.02-x86_64_armv8l-linux-gnueabihf/bin/armv8l-linux-gnueabihf-g++
+           PLATFORM=RaspberryPi
+           RASPBERRY_PI_OPT_FLAGS="-mcpu=cortex-a53 -rdynamic -mfpu=neon-fp-armv8 -mneon-for-64bits"
            OS_STRING=RaspberryPi3
 
     - language: android
@@ -170,9 +171,9 @@ matrix:
       - mkdir "$HOME/boost" || true		
       - unzip -q boost-android-r18b-armeabi-v7a-1.68.0.zip -d $HOME/boost
       - export BOOST_ROOT=$HOME/boost
-      - wget -q http://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2
-      - tar jxf 3.3.4.tar.bz2 -C $HOME
-      - export EIGEN_ROOT=$HOME/eigen-eigen-5a0156e40feb
+      - wget -q http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2
+      - tar jxf 3.3.7.tar.bz2 -C $HOME
+      - export EIGEN_ROOT=$HOME/eigen-eigen-323c052e1731
       - export CMAKE_ARGS="-DBoost_NO_SYSTEM_PATHS=ON -DBOOST_INCLUDEDIR=$BOOST_ROOT/include/ -DBOOST_LIBRARYDIR=$BOOST_ROOT/lib/armeabi-v7a -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT"
       - echo no | android create avd --force --name test --target android-22 --abi armeabi-v7a
       - emulator -avd test -no-skin -no-audio -no-window -gpu off -no-boot-anim &
@@ -202,9 +203,9 @@ matrix:
       - curl -O -J -L https://sourceforge.net/projects/boost/files/boost-binaries/1.68.0/boost_1_68_0-bin-msvc-all-32-64.7z/download
       - 7z x boost_1_68_0-bin-msvc-all-32-64.7z boost_1_68_0/lib64-msvc-14.1/* boost_1_68_0/boost/* 
       - rm -f boost_1_68_0-bin-msvc-all-32-64.7z
-      - wget -q http://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2
-      - tar jxf 3.3.4.tar.bz2 -C $HOME
-      - export EIGEN_ROOT=$HOME/eigen-eigen-5a0156e40feb
+      - wget -q http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2
+      - tar jxf 3.3.7.tar.bz2 -C $HOME
+      - export EIGEN_ROOT=$HOME/eigen-eigen-323c052e1731
       - choco install python
       - choco install numpy
       - wget -q https://download.java.net/java/GA/jdk12.0.2/e482c34c86bd4bf8b56c0b35558996b9/10/GPL/openjdk-12.0.2_windows-x64_bin.zip
@@ -221,7 +222,7 @@ matrix:
 script:
       - cd $TRAVIS_BUILD_DIR
       - mkdir cmake-build && cd cmake-build 
-      - "\"$MY_CMAKE\" -DPLATFORM=$PLATFORM -DVERSION_STRING=\"$TRAVIS_TAG\" $CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=../install ../"
+      - "\"$MY_CMAKE\" -DPLATFORM=$PLATFORM -DRASPBERRY_PI_OPT_FLAGS=\"$RASPBERRY_PI_OPT_FLAGS\" -DVERSION_STRING=\"$TRAVIS_TAG\" $CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=../install ../"
       - eval "$MY_MAKE_COMMAND"
       - cd ../install
       - tar cvzf $HOME/godec.$OS_STRING.tgz *

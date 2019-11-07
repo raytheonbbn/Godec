@@ -58,7 +58,7 @@ else()
   set(GODEC_CORE_NAME "godec_core")
 endif()
 
-if ((PLATFORM STREQUAL "Linux") OR (PLATFORM STREQUAL "Generic_ARM"))
+if ((PLATFORM STREQUAL "Linux") OR (PLATFORM STREQUAL "RaspberryPi"))
   set(PLATFORM_SPECIFIC_LIBS ${JAVA_JVM_LIBRARY} -ldl -lrt)
   set(LINKER_GODEC_ARGS -Wl,--whole-archive godec_core_static -Wl,--no-whole-archive)
 elseif (PLATFORM STREQUAL "Android")

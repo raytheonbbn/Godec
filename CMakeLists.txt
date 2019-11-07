@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.7)
 
-if (NOT (PLATFORM STREQUAL "Linux" OR PLATFORM STREQUAL "Android" OR PLATFORM STREQUAL "Generic_ARM" OR PLATFORM STREQUAL "Windows"))
-  message(FATAL_ERROR "Please specify the PLATFORM variable <Linux, Android, Generic_ARM, Windows")
+if (NOT (PLATFORM STREQUAL "Linux" OR PLATFORM STREQUAL "Android" OR PLATFORM STREQUAL "RaspberryPi" OR PLATFORM STREQUAL "Windows"))
+  message(FATAL_ERROR "Please specify the PLATFORM variable <Linux, Android, RaspberryPi, Windows")
 endif()
 
 if (PLATFORM STREQUAL "Windows")
@@ -33,11 +33,11 @@ if (NOT PLATFORM STREQUAL "Windows")
   add_compile_options(-Wall -Wno-sign-compare -Wno-unused-local-typedefs -Winit-self )
 endif()
 
-if ((PLATFORM STREQUAL "Linux") OR (PLATFORM STREQUAL "Generic_ARM"))
+if ((PLATFORM STREQUAL "Linux") OR (PLATFORM STREQUAL "RaspberryPi"))
   add_compile_options(-pthread)
 endif()
 set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -DNDEBUG")
 
 find_program(CCACHE_PROGRAM ccache)
 if(DEFINED ENV{CCACHE_DIR} AND CCACHE_PROGRAM)
@@ -85,10 +85,13 @@ if (NOT PLATFORM STREQUAL "Android")
 endif()
 
 if (PLATFORM STREQUAL "Android")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -DANDROID -marm -march=armv7-a -mfpu=neon -Wno-narrowing -fexceptions -frtti -Wno-deprecated-register -Wno-redeclared-class-member")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DANDROID -marm -march=armv7-a -mfpu=neon -Wno-narrowing -fexceptions -frtti -Wno-deprecated-register -Wno-redeclared-class-member")
   list(APPEND LINKER_LIBS -lOpenSLES)
-elseif(PLATFORM STREQUAL "Generic_ARM")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -mcpu=cortex-a53 -rdynamic -mfpu=neon-fp-armv8 -mneon-for-64bits -mhard-float")
+elseif(PLATFORM STREQUAL "RaspberryPi")
+  if (NOT DEFINED RASPBERRY_PI_OPT_FLAGS)
+    message(FATAL_ERROR "For RaspberryPi platform, need to specify RASPBERRY_PI_OPT_FLAGS")
+  endif()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RASPBERRY_PI_OPT_FLAGS} -mhard-float")
 elseif(PLATFORM STREQUAL "Linux")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-ignored-attributes -Wno-int-in-bool-context -msse -msse2")
 elseif(PLATFORM STREQUAL "Windows")
@@ -98,7 +101,7 @@ endif()
 add_definitions(
   -DEIGEN_NO_DEBUG
   -DNDEBUG
-  -O2 
+  -Ofast
 )
 if (NOT PLATFORM STREQUAL "Windows")
   add_definitions(
@@ -141,6 +144,8 @@ execute_process(COMMAND bash "-c" "grep EIGEN_WORLD_VERSION ${Eigen3_INCLUDE_DIR
 file(APPEND "${PROJECT_SOURCE_DIR}/src/include/godec/version.h" "#define GODEC_EIGEN_WORLD_VERSION ${EIGEN_WORLD_VERSION}\n")
 execute_process(COMMAND bash "-c" "grep EIGEN_MAJOR_VERSION ${Eigen3_INCLUDE_DIRS}/Eigen/src/Core/util/Macros.h | head -1 | awk '{print $3;}'" OUTPUT_VARIABLE EIGEN_MAJOR_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
 file(APPEND "${PROJECT_SOURCE_DIR}/src/include/godec/version.h" "#define GODEC_EIGEN_MAJOR_VERSION ${EIGEN_MAJOR_VERSION}\n")
+execute_process(COMMAND bash "-c" "grep EIGEN_MINOR_VERSION ${Eigen3_INCLUDE_DIRS}/Eigen/src/Core/util/Macros.h | head -1 | awk '{print $3;}'" OUTPUT_VARIABLE EIGEN_MINOR_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
+file(APPEND "${PROJECT_SOURCE_DIR}/src/include/godec/version.h" "#define GODEC_EIGEN_MINOR_VERSION ${EIGEN_MINOR_VERSION}\n")
 
 set(SOURCE_FILES
   src/include/godec/channel.h

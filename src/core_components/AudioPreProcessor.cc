@@ -181,7 +181,9 @@ void AudioPreProcessorComponent::ProcessMessage(const DecoderMessageBlock& msgBl
                     if (bytesPerSample == 1) {
                         audioVecs[channelIdx](sampleIdx) = *samplePtr;
                     } else if (bytesPerSample == 2) {
-                        audioVecs[channelIdx](sampleIdx) = *((short*)samplePtr);
+                        audioVecs[channelIdx](sampleIdx) = *((int16_t*)samplePtr);
+                    } else if (bytesPerSample == 4) {
+                        audioVecs[channelIdx](sampleIdx) = *((int32_t*)samplePtr);
                     }
                 } else if (parser.baseFormat == MuLaw) {
                     audioVecs[channelIdx](sampleIdx) = Mulaw_Decode(*samplePtr);
