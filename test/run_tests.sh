@@ -2,7 +2,7 @@
 set -e
 
 if [ "$#" -ne 2 ]; then
-    echo "Usage: run_tests.sh <installation directory> <platform string, e.g. Linux, Android, Generic_ARM, Windows>"
+    echo "Usage: run_tests.sh <installation directory> <platform string, e.g. Linux, Android, RaspberryPi, Windows>"
     exit -1
 fi
 
@@ -18,7 +18,7 @@ then
   only_test="android.test"
 fi
 
-if [ "$2" == "Generic_ARM" ] 
+if [ "$2" == "RaspberryPi" ] 
 then
   skipped_tests=""
   only_test="dummy.test"

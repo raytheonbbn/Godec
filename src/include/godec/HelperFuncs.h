@@ -30,8 +30,8 @@ using std::unordered_set;
 #ifndef _MSC_VER
 #define STRING2(x) #x
 #define STRING(x) STRING2(x)
-#if ((EIGEN_WORLD_VERSION != GODEC_EIGEN_WORLD_VERSION) || (EIGEN_MAJOR_VERSION != GODEC_EIGEN_MAJOR_VERSION))
-#pragma message "This version of Godec was compiled with Eigen library version " STRING(GODEC_EIGEN_MAJOR_VERSION) "." STRING(GODEC_EIGEN_MAJOR_VERSION) ", but your Eigen version is " STRING(EIGEN_WORLD_VERSION) "." STRING(EIGEN_MAJOR_VERSION) ". This version mismatch can cause stack corruptions"
+#if ((EIGEN_WORLD_VERSION != GODEC_EIGEN_WORLD_VERSION) || (EIGEN_MAJOR_VERSION != GODEC_EIGEN_MAJOR_VERSION) || (EIGEN_MINOR_VERSION != GODEC_EIGEN_MINOR_VERSION))
+#pragma message "This version of Godec was compiled with Eigen library version " STRING(GODEC_EIGEN_MAJOR_VERSION) "." STRING(GODEC_EIGEN_MAJOR_VERSION) "." STRING(GODEC_EIGEN_MINOR_VERSION) ", but your Eigen version is " STRING(EIGEN_WORLD_VERSION) "." STRING(EIGEN_MAJOR_VERSION) "." STRING(EIGEN_MINOR_VERSION) ". This version mismatch can cause stack corruptions"
 #error
 #endif
 #endif

@@ -478,7 +478,7 @@ The "start_on_boot" parameter, when set to "false", will require the "control" s
 #### Parameters
 | Parameter | Type | Description |
 | --- | --- | --- |
-| chunk\_size | int | Chunk size in samples |
+| chunk\_size | int | Chunk size in samples (set to -1 for minimum latency configuratio) |
 | num\_channels | int | Number of channels (1=mono, 2=stereo) |
 | sample\_depth | int | Sample depth (8,16,24 etc bit) |
 | sampling\_rate | float | Sampling rate |
