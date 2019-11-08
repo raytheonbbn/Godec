@@ -49,7 +49,7 @@ def ReadLogFile(logFname, excre):
           new_dict["action"] = groups[3]
           new_dict["slot"] = groups[4]
           new_dict["streamtime"] = long(groups[5])
-          if ((new_dict["action"] != "Pushing") or excre.match(new_dict["slot"])):
+          if ((new_dict["action"] != "Pushing") or ((excre != None) and (excre.match(new_dict["slot"])))):
             continue
           event_list.append(new_dict)
   return event_list
@@ -77,12 +77,10 @@ pusherSlot = all_events[0]["slot"]
 print("Start-point LP and slot: "+pusherName+":"+pusherSlot)
 
 realTimeOffset = 0
-pusherLastRealtime = 0
-pusherLastStreamtime = 0
 tag2Realtime = dict()
 tag2RealtimeLatency = dict()
 tag2StreamtimeLatency = dict()
-for event in all_events:
+for idx, event in enumerate(all_events):
   name = event["name"]
   slot = event["slot"]
   realtime = event["realtime"]
@@ -90,16 +88,24 @@ for event in all_events:
   #print("event: "+str(realtime)+" streamtime="+str(streamtime)+" name="+name)
   if (realTimeOffset == 0): 
     realTimeOffset = realtime
-  if (name == pusherName and slot == pusherSlot):
-    pusherLastRealtime = realtime
-    pusherLastStreamtime = streamtime
-  if (pusherLastRealtime != 0 and name != pusherName):
+  if (name != pusherName):
+    # Find the pusher event that had equal or less streamtime
+    for scan_idx in reversed(range(idx)):
+      scan_event = all_events[scan_idx]
+      if (scan_event["name"] == pusherName and scan_event["slot"] == pusherSlot):
+        if ((args.streamtime) or (args.realtime and scan_event["streamtime"] <= streamtime)):
+          pusherLastRealtime = scan_event["realtime"]
+          pusherLastStreamtime = scan_event["streamtime"]
+          break
     tag = name+"["+slot+"]"
     realtime_latency = yfac*(realtime-pusherLastRealtime)
     streamtime_latency = yfac*(pusherLastStreamtime-streamtime)
     #if (streamtime_latency > 20000):
+    #  print("pusher: realtime="+str(realtime)+" sreamtime"+str(streamtime))
     #  print("pusher: pusherLastRealtime="+str(pusherLastRealtime)+" pusherLastStreamtime"+str(pusherLastStreamtime))
+    #  print(str(realtime_latency))
     #  print(str(streamtime_latency))
+    #  exit(-1)
     if tag not in tag2Realtime:
       tag2Realtime[tag] = list()
       tag2RealtimeLatency[tag] = list()
