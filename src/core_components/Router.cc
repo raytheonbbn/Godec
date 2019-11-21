@@ -36,8 +36,8 @@ RouterComponent::RouterComponent(std::string id, ComponentGraphConfig* configPt)
     } else if (router_type_string == "utterance_round_robin") {
         mMode = Mode::UtteranceRoundRobin;
         mNumRoutes = configPt->get<int>("num_outputs", "Number of outputs to distribute to");
-        mCurrentRouteIdx = 0;
     } else GODEC_ERR << "Unknown router_type '" << router_type_string << "'" << std::endl;
+    mCurrentRouteIdx = 0;
 
     addInputSlotAndUUID(SlotRoutingStream, UUID_AnyDecoderMessage);
     addInputSlotAndUUID(SlotToRouteStream, UUID_AnyDecoderMessage);
