@@ -81,9 +81,9 @@ bool AudioDecoderMessage::mergeWith(DecoderMessage_ptr msg, DecoderMessage_ptr &
 }
 
 bool AudioDecoderMessage::canSliceAt(uint64_t sliceTime, std::vector<DecoderMessage_ptr>& msgList, uint64_t streamStartOffset, bool verbose) {
-    // Initially this actually contained a very stringent check that the length between getTime() and sliceTime are multple of mTicksPerSample.
-    // This totally doesn't work however for fractional mTicksPerSample (e.g. after resampling from 48kHz to 44.1kHz) where now the ticks are little more than rounded approximations of the sub-fraction ticks. So, we are dropping the check and are returning to allowing any slicing that is asked for, Shannong theorem be damned.
-    return true;
+    // We are returning to the stringent check even though fractional ticksPerSample due to downsamplig can cause problems when trying to slice out streams that came from different ticksPerSample (e.g. slicing out features computed from 44.1kHz and 10kHz). The solution has to rather be to create a custom component that "resamples" the features so they align the timestamps with each other
+    bool canSlice = (((int64_t)getTime()-(int64_t)sliceTime) % (int64_t)round(mTicksPerSample) == 0);
+    return canSlice;
 }
 
 bool AudioDecoderMessage::sliceOut(uint64_t sliceTime, DecoderMessage_ptr& sliceMsg, std::vector<DecoderMessage_ptr>& msgList, int64_t streamStartOffset, bool verbose) {
