@@ -23,4 +23,5 @@ cd $TRAVIS_BUILD_DIR && rm -rf cmake-build && mkdir cmake-build && cd cmake-buil
 "$MY_CMAKE" -DPLATFORM=$PLATFORM -DVERSION_STRING="$TRAVIS_TAG" $CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=../install ../ 
 eval "$MY_MAKE_COMMAND" 
 cd ../install 
+echo Creating $HOME/godec.$OS_STRING.tgz 
 tar cvzf $HOME/godec.$OS_STRING.tgz *
