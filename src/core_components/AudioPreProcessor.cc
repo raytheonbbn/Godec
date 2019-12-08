@@ -155,7 +155,7 @@ void AudioPreProcessorComponent::ProcessMessage(const DecoderMessageBlock& msgBl
     int numChannels = 1;
     std::vector<Vector> audioVecs;
 
-    double inputTicksPerSample;
+    double inputTicksPerSample = 1.0;
     // If the message is in AudioDecoderMessage format, we already got the float values
     if (audioBaseMsg->getUUID() == UUID_AudioDecoderMessage) {
         auto audioMsg =msgBlock.get<AudioDecoderMessage>(SlotStreamedAudio);
@@ -179,7 +179,7 @@ void AudioPreProcessorComponent::ProcessMessage(const DecoderMessageBlock& msgBl
                 const unsigned char* samplePtr = &binaryData[bytesPerSample*(sampleIdx*numChannels + channelIdx)];
                 if (parser.baseFormat == PCM) {
                     if (bytesPerSample == 1) {
-                        audioVecs[channelIdx](sampleIdx) = *samplePtr;
+                        audioVecs[channelIdx](sampleIdx) = *((int8_t*)samplePtr);
                     } else if (bytesPerSample == 2) {
                         audioVecs[channelIdx](sampleIdx) = *((int16_t*)samplePtr);
                     } else if (bytesPerSample == 4) {
@@ -197,7 +197,6 @@ void AudioPreProcessorComponent::ProcessMessage(const DecoderMessageBlock& msgBl
 
     mUttReceivedRawAudio += audioVecs[0].size();
     double outputTimePerSample = inputTicksPerSample*(sampleRate / mTargetSamplingRate);
-    if (isVerbose()) std::cout << std::setprecision(std::numeric_limits<long double>::digits10 + 1) << getLPId() << ": " << inputTicksPerSample << "*" << sampleRate << "/" << mTargetSamplingRate << "=" << outputTimePerSample << std::endl;
     if (outputTimePerSample < 1.0)
         GODEC_ERR << "Due to upsampling from " << sampleRate << "Hz to " << mTargetSamplingRate << "Hz, each audio sample will no longer have a unique time stamp. To fix this, add the optional 'time_upsample_factor' to the FileFeeder or Soundcard component (whichever you are using) to a value of ceil(" << mTargetSamplingRate << "/" << sampleRate << ")=" << std::ceil(1.0 / outputTimePerSample) << " or higher. If the audio is fed via an API, it is the responsibility of them to increase the timestamps by that factor. Note that this factor was calculated based on this specific audio chunk's sampling rate. If you have audio with even lower sampling rate, you might have to increase the upsampling factor even more";
 

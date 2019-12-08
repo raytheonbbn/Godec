@@ -33,7 +33,7 @@ class AudioFileReader {
 
 class AnalistFileFeeder {
   public:
-    AnalistFileFeeder(char* analistFile, char* waveFileDir, char* waveFileExtension);
+    AnalistFileFeeder(std::string analistFile, std::string waveFileDir, std::string waveFileExtension);
     bool getNextUtterance(std::vector<unsigned char> &audioData,
                           int &sampleWidth,
                           std::string &utteranceId,
@@ -47,9 +47,9 @@ class AnalistFileFeeder {
                           int64_t &beginSample,
                           float &uttOffsetInFileInSeconds);
   private:
-    FILE* listFileFp;
-    char waveFileDir[1024 * 10]; // XXXX be dumb for now
-    char waveFileExtension[1024 * 10];
+    FILE* mListFileFp;
+    std::string mWaveFileDir;
+    std::string mWaveFileExtension;
     long utteranceCounter;
     std::vector<std::string> episodeList;
 };

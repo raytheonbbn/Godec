@@ -15,7 +15,7 @@ add_custom_target(GodecJar ALL DEPENDS ${JavaFiles})
 add_custom_command(
 	TARGET GodecJar
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/java
-	COMMAND ${CMAKE_COMMAND} -E env "MAVEN_OPTS=-Dhttps.protocols=TLSv1,TLSv1.1,TLSv1.2" ${MVN_CMD} clean verify
+	COMMAND ${CMAKE_COMMAND} -E env "MAVEN_OPTS=-Dhttps.protocols=TLSv1,TLSv1.1,TLSv1.2" ${MVN_CMD} -q clean verify
 	)
 
 install(FILES "${PROJECT_SOURCE_DIR}/java/godec/target/godec-1.0-SNAPSHOT.jar" DESTINATION java)

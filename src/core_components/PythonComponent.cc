@@ -97,6 +97,7 @@ PythonComponent::PythonComponent(std::string id, ComponentGraphConfig* configPt)
 
     std::list<std::string> requiredOutputSlots;
     boost::split(requiredOutputSlots, expectedOutputs,boost::is_any_of(","));
+    requiredOutputSlots.erase(std::remove_if(requiredOutputSlots.begin(), requiredOutputSlots.end(), std::bind2nd(std::equal_to<std::string>(), "")), requiredOutputSlots.end());
     // .push_back(Slots From 'expected_outputs');  // godec doc won't catch the above construct
     initOutputs(requiredOutputSlots);
     mPMainThread = PyEval_SaveThread();
@@ -148,7 +149,6 @@ unordered_map<std::string, DecoderMessage_ptr> PythonComponent::PythonDictToDeco
 
 void PythonComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
 #ifndef ANDROID
-    uint64_t time = msgBlock.getMap().begin()->second->getTime();
     PyGILState_STATE gstate = PyGILState_Ensure();
     PyObject* pMsgBlock = DecoderMsgHashToPython(msgBlock);
     PyObject* pProcessMessage = PyUnicode_FromString("ProcessMessage");

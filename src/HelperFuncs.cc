@@ -82,7 +82,7 @@ void GodecErrorLogger::HandleMessage(const LogMessageEnvelope &envelope, const c
 
     if (envelope.severity == LogMessageEnvelope::kError) {
         // Should we throw exception, or abort?
-        if (!std::uncaught_exception()) {
+        if (std::uncaught_exceptions() == 0) {
             // throw exception with empty message,
             throw std::runtime_error(""); // KALDI_ERR,
         } else {
@@ -122,14 +122,14 @@ void OverlayPropertyTrees(const json& tree1, const std::string& tree1Path, const
     std::unordered_map<std::string,bool> leavesToVisit;
     json leaf1;
     if (getJsonPath(tree1, json::json_pointer(tree1Path), leaf1)) {
-        for(auto& it : json::iterator_wrapper(leaf1)) {
+        for(auto& it : leaf1.items()) {
             if (it.key() == "") continue;
             leavesToVisit[it.key()] = false;
         }
     }
     json leaf2;
     if (getJsonPath(tree2, json::json_pointer(tree2Path), leaf2)) {
-        for(auto& it : json::iterator_wrapper(leaf2)) {
+        for(auto& it : leaf2.items()) {
             if (it.key() == "") continue;
             auto key = it.key();
             bool forceCreation = false;

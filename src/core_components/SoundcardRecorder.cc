@@ -398,7 +398,7 @@ void LinuxAudioRecorder::stopCapture() {
 }
 
 void LinuxAudioRecorder::ProcessLoop() {
-    int bufferSize = mChunkSize*mSampleDepth*mNumChannels;
+    int bufferSize = mChunkSize*(mSampleDepth/8)*mNumChannels;
     unsigned char* audioBuffer = new unsigned char[bufferSize];
     snd_pcm_sframes_t ret;
     while (mKeepRunning) {

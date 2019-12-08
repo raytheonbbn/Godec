@@ -235,6 +235,7 @@ Like the FileFeeder, the "control_type" specifies whether this is a one-shot run
 | npz\_file | string | Output Numpy npz file name |
 | output\_file | string | Json output file path |
 | output\_file\_prefix | string | Output audio file path prefix |
+| sample\_depth | int | wave file sample depth (8,16,32) |
 
 #### Inputs
 | Input slot | Message Type | 
