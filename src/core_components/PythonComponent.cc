@@ -12,7 +12,6 @@
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 #endif
-#include <functional>
 
 namespace Godec {
 
@@ -98,7 +97,7 @@ PythonComponent::PythonComponent(std::string id, ComponentGraphConfig* configPt)
 
     std::list<std::string> requiredOutputSlots;
     boost::split(requiredOutputSlots, expectedOutputs,boost::is_any_of(","));
-    requiredOutputSlots.erase(std::remove_if(requiredOutputSlots.begin(), requiredOutputSlots.end(), std::bind2nd(std::equal_to<std::string>(), "")), requiredOutputSlots.end());
+    requiredOutputSlots.erase(std::remove_if(requiredOutputSlots.begin(), requiredOutputSlots.end(), [&](auto const& elem) {return elem == "";}), requiredOutputSlots.end());
     // .push_back(Slots From 'expected_outputs');  // godec doc won't catch the above construct
     initOutputs(requiredOutputSlots);
     mPMainThread = PyEval_SaveThread();
