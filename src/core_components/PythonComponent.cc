@@ -12,6 +12,7 @@
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 #endif
+#include <functional>
 
 namespace Godec {
 
