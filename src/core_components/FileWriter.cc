@@ -17,7 +17,7 @@ std::string FileWriterComponent::describeThyself() {
 /* FileWriterComponent::ExtendedDescription
 The writing equivalent to the FileFeeder component, for saving output. Available "input_type":
 
-"audio": For writing AudioDecoderMessage messages. "output_file_prefix" specifies the path prefix that each utterance gets written to
+"audio": For writing AudioDecoderMessage messages. "output_file_prefix" specifies the path prefix that each utterance gets written to. The incoming audio are float values expected to be normalied to -1.0/1.0 range
 
 "raw_text": BinaryDecoderMessage expected that gets converted into text and written into "output_file"
 
@@ -44,6 +44,9 @@ boost::shared_ptr<FileWriterHolder> FileWriterComponent::GetFileWriterFromConfig
     fwh->mInputType = String2FWType(configPt->get<std::string>("input_type", "Input stream type (audio, raw_text, features, json)"));
     if (fwh->mInputType == Audio) {
         fwh->mAudioPrefix = configPt->get<std::string>("output_file_prefix", "Output audio file path prefix");
+        int depth = configPt->get<int>("sample_depth", "wave file sample depth (8,16,32)");
+        if (depth != 8 && depth != 16 && depth != 32) GODEC_ERR << getLPId() << "Unsuported audio sample depth " << depth;
+        fwh->mAudioSampleDepth = depth;
         fwh->audioFp = NULL;
     } else if (fwh->mInputType == RawText) {
         std::string output_file = configPt->get<std::string>("output_file", "Output text file path");
@@ -128,10 +131,18 @@ void FileWriterComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
         }
         if (baseInputMsg->getUUID() == UUID_AudioDecoderMessage) {
             auto audioMsg = msgBlock.get<AudioDecoderMessage>(SlotInput);
-            const Vector &audioData = audioMsg->mAudio;
+            const Vector audioData = audioMsg->mAudio.cwiseMin(1.0).cwiseMax(-1.0);
             for (int i = 0; i < audioData.size(); i++) {
-                short val = (short)audioData(i);
-                fwrite(&val, sizeof(short), 1, mCurrentFWH->audioFp);
+                if (mCurrentFWH->mAudioSampleDepth == 8) {
+                    int8_t val = (char)(INT8_MAX*audioData(i));
+                    fwrite(&val, sizeof(int8_t), 1, mCurrentFWH->audioFp);
+                } else if (mCurrentFWH->mAudioSampleDepth == 16) {
+                    int16_t val = (int16_t)(INT16_MAX*audioData(i));
+                    fwrite(&val, sizeof(int16_t), 1, mCurrentFWH->audioFp);
+                } else if (mCurrentFWH->mAudioSampleDepth == 32) {
+                    int32_t val = (int32_t)(INT32_MAX*audioData(i));
+                    fwrite(&val, sizeof(int32_t), 1, mCurrentFWH->audioFp);
+                }
             }
         } else if (baseInputMsg->getUUID() == UUID_BinaryDecoderMessage) {
             auto binaryMsg =msgBlock.get<BinaryDecoderMessage>(SlotInput);

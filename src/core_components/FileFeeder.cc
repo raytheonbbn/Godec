@@ -81,13 +81,13 @@ void AudioFileReader::close() {
     fclose(fPtr);
 }
 
-AudioFileReader *openWaveFile(const char *fileName) {
+AudioFileReader *openWaveFile(std::string fileName) {
     AudioFileReader* outFR = new AudioFileReader();
     struct stat statBuf;
-    stat(fileName, &statBuf);
+    stat(fileName.c_str(), &statBuf);
     outFR->headerSize = 44;
 
-    FILE *f = fopen(fileName, "rb");
+    FILE *f = fopen(fileName.c_str(), "rb");
     if (f == NULL) GODEC_ERR << "Failed to open audio file: " << fileName;
 
     std::vector<char> buffer;
@@ -145,13 +145,13 @@ AudioFileReader *openWaveFile(const char *fileName) {
 }
 
 
-AudioFileReader *openNIST1AFile(const char *fileName) {
+AudioFileReader *openNIST1AFile(std::string fileName) {
     AudioFileReader* outFR = new AudioFileReader();
 
     struct stat statBuf;
-    stat(fileName, &statBuf);
+    stat(fileName.c_str(), &statBuf);
 
-    FILE *f = fopen(fileName, "rb");
+    FILE *f = fopen(fileName.c_str(), "rb");
     if (f == NULL) GODEC_ERR << "Error opening file " << fileName << ": " << strerror(errno) << std::endl;
 
     outFR->audioType = PCM; // Default
@@ -252,14 +252,14 @@ void parseAnalistLine(std::string& analistFileLine, std::string& waveFile, std::
 }
 
 
-AnalistFileFeeder::AnalistFileFeeder(char* analistFile, char* waveFileDir, char* waveFileExtension) {
-    strcpy(this->waveFileDir, waveFileDir);
-    strcpy(this->waveFileExtension, waveFileExtension);
+AnalistFileFeeder::AnalistFileFeeder(std::string analistFile, std::string _waveFileDir, std::string _waveFileExtension) {
+    mWaveFileDir = _waveFileDir;
+    mWaveFileExtension = _waveFileExtension;
     fflush(stdout);
-    listFileFp = fopen(analistFile, "rb");
-    if (listFileFp == NULL) GODEC_ERR << "Failed to open " << analistFile;
+    mListFileFp = fopen(analistFile.c_str(), "rb");
+    if (mListFileFp == NULL) GODEC_ERR << "Failed to open " << analistFile;
     char analistFileLine[1000];
-    while (fgets(analistFileLine, 1000, listFileFp)) {
+    while (fgets(analistFileLine, 1000, mListFileFp)) {
         std::string analistLineString(analistFileLine);
 
         std::string waveFile;
@@ -273,7 +273,7 @@ AnalistFileFeeder::AnalistFileFeeder(char* analistFile, char* waveFileDir, char*
 
         episodeList.push_back(episodeName);
     }
-    fseek(listFileFp, 0, SEEK_SET);
+    fseek(mListFileFp, 0, SEEK_SET);
 
     utteranceCounter = 0;
 }
@@ -284,7 +284,7 @@ bool AnalistFileFeeder::getNextUtterance(std::vector<unsigned char>& audioData, 
     episodeDone = false;
 
     char analistFileLine[1000];
-    if (fgets(analistFileLine, 1000, listFileFp)) {
+    if (fgets(analistFileLine, 1000, mListFileFp)) {
         std::string analistLineString(analistFileLine);
 
         std::string typeString;
@@ -294,8 +294,7 @@ bool AnalistFileFeeder::getNextUtterance(std::vector<unsigned char>& audioData, 
 
         if (utteranceCounter == episodeList.size() || episodeName != episodeList[utteranceCounter]) episodeDone = true;
 
-        char fullWavePath[1024];
-        sprintf(fullWavePath, "%s/%s.%s", waveFileDir, waveFile.c_str(), waveFileExtension);
+        std::string fullWavePath = mWaveFileDir+"/"+waveFile+"."+mWaveFileExtension;
 
         AudioFileReader* reader = NULL;
         std::string baseFormat = "";
@@ -324,7 +323,7 @@ bool AnalistFileFeeder::getNextUtterance(std::vector<unsigned char>& audioData, 
         reader->close();
         delete reader;
 
-        fileDone = isEndOfFile(listFileFp);
+        fileDone = isEndOfFile(mListFileFp);
     } else return false;
 
     return true;
@@ -558,9 +557,6 @@ void FileFeederComponent::FeedLoop() {
         std::vector<std::string> puncStrings;
         std::vector<float> word_begin_times;
         std::vector<float> word_dur_times;
-        float begin_time = 0;
-        float end_time = 0;
-
         json jsonMessage;
         json jsonConvState;
 

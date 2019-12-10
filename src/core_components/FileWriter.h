@@ -33,6 +33,7 @@ class FileWriterHolder {
 
     FILE* audioFp;
     std::string mAudioPrefix;
+    int mAudioSampleDepth;
 
     std::ofstream raw_text_writer;
     std::ofstream json_output_writer;

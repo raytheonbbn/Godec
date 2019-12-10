@@ -465,12 +465,12 @@ PyObject* FeaturesDecoderMessage::toPython() {
     PyDict_SetItemString(dict, "time", PyLong_FromLong(getTime()));
     PyDict_SetItemString(dict, "descriptor", PyUnicode_FromString(getFullDescriptorString().c_str()));
 
-    npy_intp timeDims[1] {mFeatureTimestamps.size()};
+    npy_intp timeDims[1] {(npy_intp)mFeatureTimestamps.size()};
     PyObject* pTimestamps = PyArray_SimpleNewFromData(1, timeDims, NPY_UINT64, &mFeatureTimestamps[0]);
     if (pTimestamps == NULL) GODEC_ERR << "Could not allocate feature timestamps memory";
     PyDict_SetItemString(dict, "feature_timestamps", pTimestamps);
 
-    npy_intp featDims[2] {mFeatures.rows(), mFeatures.cols()};
+    npy_intp featDims[2] {(npy_intp)mFeatures.rows(), (npy_intp)mFeatures.cols()};
     PyObject* pFeats = PyArray_SimpleNew(2, featDims, NPY_FLOAT32);
     if (pFeats == NULL) GODEC_ERR << "Could not allocate feature memory";
     for(int row = 0; row < mFeatures.rows(); row++) {

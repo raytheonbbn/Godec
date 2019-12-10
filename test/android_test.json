@@ -27,6 +27,7 @@
     "type": "FileWriter",
     "control_type": "single_on_startup",
     "input_type": "audio",
+    "sample_depth": "16",
     "output_file_prefix": "data/_resampled_",
     "inputs": { 
       "conversation_state": "convstate",
