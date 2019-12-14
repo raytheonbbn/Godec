@@ -7,8 +7,10 @@ my @scanDirs = split(/,/,$ARGV[0]);
 my $slotDefs = GetSlotDefs($ARGV[1]);
 my @filesToScan;
 foreach my $scanDir (@scanDirs) {
-  push @filesToScan, glob($scanDir."/*.h*");
+  my @newFiles = grep /.*\.h[^\.]*$/, glob($scanDir."/*.h*"); 
+  push @filesToScan, @newFiles;
 }
+
 @filesToScan = sort @filesToScan;
 
 sub GetSlotDefs {
@@ -40,7 +42,7 @@ sub ScanFile {
   my $path = shift;
   my $slotDefs = shift;
   my @hFiles = glob($path."/".$fileBase.".h*");
-  if (scalar(@hFiles) == 0) {die "No matching .h* file found";}
+  if (scalar(@hFiles) == 0) {die "No matching .h* file found for ".$path."/".$fileBase;}
   my $hFile = $hFiles[0];
   open(HIN,"<$hFile") || die "Can't open ".$hFile;
   my %outHash;

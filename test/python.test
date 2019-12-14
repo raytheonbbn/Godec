@@ -16,5 +16,5 @@ if [ "$(expr substr $(uname -s) 1 9)" == "CYGWIN_NT" ]; then
   OVERRIDE="-x python.python_executable=$PYTHON"
 fi
 
-godec $OVERRIDE python_test.json
+godec -q $OVERRIDE python_test.json
 $PYTHON python_test_compare_matrix.py

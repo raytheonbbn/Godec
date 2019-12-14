@@ -27,7 +27,8 @@ class PythonTest:
   def ProcessMessage(self, msgHash):
     try:
       if (self.verbose):
-        print("ProcessMessage was called with features "+str(msgHash['features']['features']))
+        print("ProcessMessage was called with features of shape "+str(msgHash['features']['features'].shape))
+        print("Ignore data is set to "+str(msgHash['conversation_state']['descriptor']))
       msgHash['features']['features'] *= self.mult_fac
       del msgHash['conversation_state']
   
