@@ -189,7 +189,7 @@ void FileWriterComponent::WriteJsonOutput(boost::shared_ptr<const JsonDecoderMes
 	// Stavros: Removed this since it affects timing (resets time to 0 for every new utt)
         //if (audioMsg->getDescriptor("utterance_offset_in_file") != "" && boost::lexical_cast<float>(audioMsg->getDescriptor("utterance_offset_in_file")) != mPrevConvoEndTimeInSecondsStreamBased) {
            //mPrevConvoEndTimeInSecondsStreamBased = boost::lexical_cast<float>(audioMsg->getDescriptor("utterance_offset_in_file"));
-        }
+        //}
         std::string file = audioMsg->getDescriptor("wave_file_name") != "" ? audioMsg->getDescriptor("wave_file_name") : "dummy";
         std::string channel = audioMsg->getDescriptor("channel") == "1" ? "A" : "B";
         json_output_writer << std::fixed << std::setprecision(2);
