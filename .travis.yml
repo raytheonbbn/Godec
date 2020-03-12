@@ -87,12 +87,12 @@ matrix:
       - wget -q http://archive.raspberrypi.org/debian/pool/main/a/alsa-lib/libasound2-dev_1.1.3-5+rpi3_armhf.deb
       - ar x libasound2-dev_1.1.3-5+rpi3_armhf.deb
       - tar xf data.tar.xz -C $HOME/alsa
-      - wget -q http://raspbian.mirror.constant.com/raspbian/pool/main/o/openjdk-8/openjdk-8-jdk_8u232-b09-1~deb9u1_armhf.deb
-      - ar x openjdk-8-jdk_8u232-b09-1~deb9u1_armhf.deb
+      - wget -q http://raspbian.mirror.constant.com/raspbian/pool/main/o/openjdk-8/openjdk-8-jdk_8u242-b08-1~deb9u1_armhf.deb
+      - ar x openjdk-8-jdk_8u242-b08-1~deb9u1_armhf.deb
       - mkdir $HOME/jdk
       - tar xf data.tar.xz -C $HOME/jdk
-      - wget -q http://raspbian.mirror.constant.com/raspbian/pool/main/o/openjdk-8/openjdk-8-jre-headless_8u232-b09-1~deb9u1_armhf.deb
-      - ar x openjdk-8-jre-headless_8u232-b09-1~deb9u1_armhf.deb
+      - wget -q http://raspbian.mirror.constant.com/raspbian/pool/main/o/openjdk-8/openjdk-8-jre-headless_8u242-b08-1~deb9u1_armhf.deb
+      - ar x openjdk-8-jre-headless_8u242-b08-1~deb9u1_armhf.deb
       - mkdir $HOME/jre
       - tar xf data.tar.xz -C $HOME/jre
       - mkdir $HOME/pydev
