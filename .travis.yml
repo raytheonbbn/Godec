@@ -185,11 +185,11 @@ matrix:
       - wget -q https://download.java.net/java/GA/jdk12.0.2/e482c34c86bd4bf8b56c0b35558996b9/10/GPL/openjdk-12.0.2_windows-x64_bin.zip
       - unzip openjdk-12.0.2_windows-x64_bin.zip -d $HOME
       - export JAVA_HOME=$HOME/jdk-12.0.2
-      - wget -q https://www-us.apache.org/dist/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz
-      - tar xf apache-maven-3.6.1-bin.tar.gz -C $HOME
+      - wget -q https://www-us.apache.org/dist/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+      - tar xf apache-maven-3.6.3-bin.tar.gz -C $HOME
       - wget https://www.libs4win.com/libzlib/libzlib-1.2.11-msvc2017-amd64-release.zip
       - unzip libzlib-1.2.11-msvc2017-amd64-release.zip -d $HOME/zlib
-      - export PATH=$PATH:$HOME/apache-maven-3.6.1/bin:$HOME/$JAVA_HOME/bin
+      - export PATH=$PATH:$HOME/apache-maven-3.6.3/bin:$HOME/$JAVA_HOME/bin
       - export CMAKE_ARGS="-DZLIB_ROOT=$HOME/zlib -DZLIB_LIBRARY=$HOME/zlib/lib/zlib.lib -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_INCLUDEDIR=$HOME/boost_1_68_0 -DBOOST_LIBRARYDIR=$HOME/boost_1_68_0/lib64-msvc-14.1 -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DGODEC_ADDITIONAL_INCLUDE_DIRS=C:/Python38/lib/site-packages/numpy/core/include"
       - export MY_MAKE_COMMAND="\"$MY_CMAKE\" --build . --target install --config Release"
 
