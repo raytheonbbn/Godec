@@ -59,6 +59,7 @@ class FileWriterComponent : public LoopProcessor {
     static std::string SlotFileFeederConvstate;
     float mPrevConvoEndTimeInSecondsStreamBased;
     int64_t mPrevConvoEndTimeInTicksStreamBased;
+    float utterance_offset_in_file;
 
     std::string mControlType;
     boost::shared_ptr<FileWriterHolder> mCurrentFWH;
