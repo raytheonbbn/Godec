@@ -1,6 +1,5 @@
 before_install:
         - wget -q http://www.cmake.org/files/v3.14/cmake-3.14.5-Linux-x86_64.tar.gz && tar xzf cmake-3.14.5-Linux-x86_64.tar.gz -C $HOME
-        - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
         - export MY_CMAKE=$HOME/cmake-3.14.5-Linux-x86_64/bin/cmake
         - export MY_MAKE_COMMAND="make -j4 install VERBOSE=1 && make test ARGS=\"-V\""
 
@@ -13,7 +12,7 @@ matrix:
       addons:
         apt:
           sources:
-          - ubuntu-toolchain-r-test
+              - sourceline: 'ppa:ubuntu-toolchain-r-test'
           packages:
           - g++-7
           - libeigen3-dev
