@@ -224,6 +224,7 @@ class LoopProcessor {
     static std::string SlotTimeMap;
     static std::string SlotControl;
     static std::string SlotSearchOutput;
+    static std::string SlotAudioInfo;
 
     // Don't use the following
     void startDecodingLoop();

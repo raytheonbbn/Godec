@@ -39,6 +39,7 @@ std::string LoopProcessor::QuietGodec = "quiet_godec";
 std::string LoopProcessor::SlotTimeMap = "time_map";
 std::string LoopProcessor::SlotControl = "control";
 std::string LoopProcessor::SlotSearchOutput = "fst_search_output";
+std::string LoopProcessor::SlotAudioInfo = "audio_info";
 
 std::string DecoderMessage::describeThyself() const {
     std::stringstream ss;
