@@ -28,6 +28,7 @@ extern uuid UUID_NbestDecoderMessage;
 extern uuid UUID_TimeMapDecoderMessage;
 extern uuid UUID_BinaryDecoderMessage;
 extern uuid UUID_JsonDecoderMessage;
+extern uuid UUID_AudioInfoDecoderMessage;
 
 enum ProcessingMode {
     LowLatency,
@@ -76,6 +77,39 @@ class AudioDecoderMessage : public DecoderMessage {
         ar & boost::serialization::base_object<DecoderMessage>(*this);
         ar & mSampleRate;
         ar & mAudio;
+        ar & mTicksPerSample;
+    }
+};
+
+class AudioInfoDecoderMessage : public DecoderMessage {
+  public:
+    float mSampleRate;
+    float mTicksPerSample;
+
+    std::string describeThyself() const;
+    DecoderMessage_ptr clone() const;
+
+    static DecoderMessage_ptr create(uint64_t time, float sampleRate, float ticksPerSample);
+    bool mergeWith(DecoderMessage_ptr msg, DecoderMessage_ptr &remainingMsg, bool verbose);
+    bool canSliceAt(uint64_t sliceTime, std::vector<DecoderMessage_ptr>& msgList, uint64_t streamStartOffset, bool verbose);
+    bool sliceOut(uint64_t sliceTime, DecoderMessage_ptr& sliceMsg, std::vector<DecoderMessage_ptr>& msgList, int64_t streamStartOffset, bool verbose);
+    void shiftInTime(int64_t deltaT);
+    jobject toJNI(JNIEnv* env);
+    static DecoderMessage_ptr fromJNI(JNIEnv* env, jobject jMsg);
+#ifndef ANDROID
+    PyObject* toPython();
+    static DecoderMessage_ptr fromPython(PyObject* pMsg);
+#endif
+
+    uuid getUUID() const  { return UUID_AudioInfoDecoderMessage; }
+    static uuid getUUIDStatic() { return UUID_AudioInfoDecoderMessage; }
+
+  private:
+    friend class boost::serialization::access;
+    template<typename Archive>
+    void serialize(Archive & ar, const unsigned int version) {
+        ar & boost::serialization::base_object<DecoderMessage>(*this);
+        ar & mSampleRate;
         ar & mTicksPerSample;
     }
 };
