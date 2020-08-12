@@ -313,9 +313,14 @@ void ComponentGraph::PushMessage(std::string channelName, DecoderMessage_ptr msg
     std::stringstream ss;
     ss.precision(6);
     ss << std::fixed;
+#ifdef ANDROID
+    // Switch to timespec_get on Android once it is available
+    auto seconds = (boost::posix_time::microsec_clock::local_time() - boost::posix_time::ptime(boost::gregorian::date(1970, 1, 1))).total_nanoseconds()/1.0E9;
+#else
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
     auto seconds = ts.tv_sec+ts.tv_nsec/1.0E9;
+#endif    
     ss << "PushMessage-ComponentGraph-debug(" << seconds << "): pushing to " << channelName << " timestamp: " << msg->getTime() << std::endl;
     GODEC_INFO << ss.str() << std::endl;
 
