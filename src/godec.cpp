@@ -270,6 +270,16 @@ extern "C" {
     JNIEXPORT void Java_com_bbn_godec_Godec_JPushMessage( JNIEnv* env, jobject thiz, jstring jEndpointName, jobject jMsg) {
         DecoderMessage_ptr msg = globalGodecInstance->JNIToDecoderMsg(env, jMsg);
         const char* endpointName = env->GetStringUTFChars(jEndpointName,0);
+
+        std::stringstream ss;
+        ss.precision(6);
+        ss << std::fixed;
+        struct timespec ts;
+        timespec_get(&ts, TIME_UTC);
+        auto seconds = ts.tv_sec+ts.tv_nsec/1.0E9;
+        ss << "PushMessage-JNIEXPORT-debug(" << seconds << "): pushing to " << std::string(endpointName) << " timestamp: " << msg->getTime() << std::endl;
+        GODEC_INFO << ss.str() << std::endl;
+
         globalGodecInstance->PushMessage(ComponentGraph::TOPLEVEL_ID+ComponentGraph::TREE_LEVEL_SEPARATOR + std::string(endpointName), msg);
         env->ReleaseStringUTFChars(jEndpointName, endpointName);
     }

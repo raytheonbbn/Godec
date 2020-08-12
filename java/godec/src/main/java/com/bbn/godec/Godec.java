@@ -56,6 +56,9 @@ public class Godec
    * @param msg message to push
   */
   public void PushMessage(String endpointName, DecoderMessage msg) {
+    long milli = System.currentTimeMillis();
+    double seconds = milli / 1000.0;
+    System.out.printf("PushMessage-Java-Debug(%.3f): pushing to " + endpointName + " timestamp: " + msg.mTime + "\n", seconds); 
     JPushMessage(endpointName, msg);
   }
 

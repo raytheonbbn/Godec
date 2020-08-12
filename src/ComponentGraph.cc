@@ -310,6 +310,15 @@ void ComponentGraph::WaitTilShutdown() {
 }
 
 void ComponentGraph::PushMessage(std::string channelName, DecoderMessage_ptr msg) {
+    std::stringstream ss;
+    ss.precision(6);
+    ss << std::fixed;
+    struct timespec ts;
+    timespec_get(&ts, TIME_UTC);
+    auto seconds = ts.tv_sec+ts.tv_nsec/1.0E9;
+    ss << "PushMessage-ComponentGraph-debug(" << seconds << "): pushing to " << channelName << " timestamp: " << msg->getTime() << std::endl;
+    GODEC_INFO << ss.str() << std::endl;
+
     auto ep = GetApiEndpoint(channelName);
     ep->pushToOutputs(ep->getOutputSlot(), msg);
 }
