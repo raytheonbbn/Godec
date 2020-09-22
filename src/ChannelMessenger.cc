@@ -341,11 +341,16 @@ void LoopProcessor::addToInputChannel(DecoderMessage_ptr msg) {
 }
 
 void LoopProcessor::pushToOutputs(std::string slot, DecoderMessage_ptr msg) {
+    GODEC_INFO << "ChannelMsgrDbg pushing to slot " << slot;
+    
     auto slotIt = mOutputSlots.find(slot);
     if (slotIt == mOutputSlots.end()) {
         GODEC_ERR << getLPId(false) << ":Trying to push to undefined output slot '" << slot << "'. This is a bug in the component code. " << std::endl;
     }
     auto nonConstMsg = boost::const_pointer_cast<DecoderMessage>(msg);
+
+    GODEC_INFO << "ChannelMsgrDbg msg description " << nonConstMsg->describeThyself();
+
     nonConstMsg->setTag(mOutputSlot2Tag[slot]);
 
     if (isVerbose() && slotIt->second.size() != 0) {

@@ -29,7 +29,7 @@ MergerComponent::MergerComponent(std::string id, ComponentGraphConfig* configPt)
         // addInputSlotAndUUID(input_streams_[0-9], UUID_AnyDecoderMessage);  // Replacement for above godec doc ignore
         mMessageQueue[ss.str()].queueOffset = -1;
     }
-
+    GODEC_INFO << "MergerDbg 0 num streams " << numStreams;
     mTimeMapStream.addStream(SlotTimeMap);
     std::list<std::string> requiredOutputSlots;
     requiredOutputSlots.push_back(SlotOutputStream);
@@ -44,7 +44,14 @@ int64_t getOrigTime(int64_t msgMappedEnd, const TimeMapEntry& tm) {
         return tm.startOrigTime;
     else {
         assert(tm.endMappedTime - tm.startMappedTime > 0);
-        return round(tm.startOrigTime+msgMappedLength*(tm.endOrigTime-tm.startOrigTime)/(tm.endMappedTime-tm.startMappedTime));
+        // fbernard debug
+        double not_rounded = tm.startOrigTime+msgMappedLength*(tm.endOrigTime-tm.startOrigTime)/(tm.endMappedTime-tm.startMappedTime);
+        GODEC_INFO << "MergerDbg 0 orig time raw " << not_rounded;
+        int64_t rounded = round(not_rounded);
+        GODEC_INFO << "MergerDbg 0 orig time rounded " << rounded;
+        return rounded;
+        //
+        //return round(tm.startOrigTime+msgMappedLength*(tm.endOrigTime-tm.startOrigTime)/(tm.endMappedTime-tm.startMappedTime));
     }
 }
 
@@ -82,6 +89,7 @@ void MergerComponent::ProcessLoop() {
             }
 
             if (newMessage->getUUID() == UUID_TimeMapDecoderMessage) {
+                GODEC_INFO << "MergerDbg adding new message";
                 mTimeMapStream.addMessage(newMessage, slot);
             } else {
                 mMessageQueue[slot].queue.push_back(newMessage);
@@ -91,6 +99,7 @@ void MergerComponent::ProcessLoop() {
         SingleTimeStream& timeMapStream = mTimeMapStream.getStream(SlotTimeMap);
 
         bool removedFromTimeMap = true;
+        GODEC_INFO << "MergerDbg 1 time map stream size " << timeMapStream.size();
         while (removedFromTimeMap && timeMapStream.size() != 0) {
             int64_t lastPushedTime = -1;
             auto timeMapMsg = boost::static_pointer_cast<const TimeMapDecoderMessage>(timeMapStream.front());
@@ -99,10 +108,15 @@ void MergerComponent::ProcessLoop() {
             ss << SlotInputStreamPrefix << timeMapEntry.routeIndex;
             auto& mQ = mMessageQueue[ss.str()];
             bool removedFromMsgQueue = true;
+            GODEC_INFO << "MergerDbg 2 msg queue size " << mQ.queue.size();
             while (removedFromMsgQueue && mQ.queue.size() != 0) {
                 auto firstMsg = mQ.queue.front();
                 int64_t firstMsgStart = mQ.queueOffset + 1;
                 int64_t firstMsgEnd = firstMsg->getTime();
+                GODEC_INFO << "MergerDbg 3 msg start " << firstMsgStart;
+                GODEC_INFO << "MergerDbg 3 map start " << timeMapEntry.startMappedTime;
+                GODEC_INFO << "MergerDbg 3 msg end " << firstMsgEnd;
+                GODEC_INFO << "MergerDbg 3 map end " << timeMapEntry.endMappedTime;
                 if (firstMsgStart >= timeMapEntry.startMappedTime && firstMsgEnd <= timeMapEntry.endMappedTime) {
                     auto clonedMsg = firstMsg->clone();
                     auto nonConstMsg = boost::const_pointer_cast<DecoderMessage>(clonedMsg);
@@ -127,6 +141,8 @@ void MergerComponent::ProcessLoop() {
                 }
             }
             removedFromTimeMap = false;
+            GODEC_INFO << "MergerDbg 4 lastPushedTime " << lastPushedTime;
+            GODEC_INFO << "MergerDbg 4 time map msg time " << timeMapMsg->getTime();
             if (lastPushedTime == timeMapMsg->getTime()) {
                 timeMapStream.erase(timeMapStream.begin());
                 removedFromTimeMap = true;

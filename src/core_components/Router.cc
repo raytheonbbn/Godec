@@ -109,9 +109,13 @@ void RouterComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
             for(int idx = 0; idx < mNumRoutes; idx++) {
                 std::vector<DecoderMessage_ptr> tmp{baseToRouteMsg};
                 auto nonConstBaseToRouteMsg = boost::const_pointer_cast<DecoderMessage>(baseToRouteMsg);
+                GODEC_INFO << "RouterDbg 0 slice time " << sliceTime;
+                GODEC_INFO << "RouterDbg 0 prev cutoff " << msgBlock.getPrevCutoff();
+                GODEC_INFO << "RouterDbg 0 route stream offset " << mToRouteStreamOffset;
                 while(sliceTime >= msgBlock.getPrevCutoff() && !nonConstBaseToRouteMsg->canSliceAt(sliceTime, tmp, 0, false)) {
                     sliceTime--;
                 }
+                GODEC_INFO << "RouterDbg 1 slice time " << sliceTime;
                 if (sliceTime == msgBlock.getPrevCutoff()) GODEC_ERR << "Router: Could not find a spot to insert a dummy end-of-convo signal. Please confer with the component documentation what that means";
                 int routeIdx = (mCurrentRouteIdx+idx)%mNumRoutes;
                 mAccumAlignment.insert(mAccumAlignment.end()-idx, sliceTime);
@@ -128,12 +132,18 @@ void RouterComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
 
     // Now distribute
     while(!mAccumRouteIdx.empty()) {
+        
         // If this is the only element and it's not a forced utt-end due to convstate, we have to defer until more data comes in
         if (mAccumRouteIdx.size() == 1 && !mAccumEndOfUtt.front()) break;
 
         uint64_t sliceTime = mAccumAlignment.front();
         int64_t sliceLength = sliceTime - mToRouteStreamOffset;
         int routeIdx = mAccumRouteIdx.front();
+
+        GODEC_INFO << "RouterDbg 2 slice time " << sliceTime;
+        GODEC_INFO << "RouterDbg 2 prev cutoff " << msgBlock.getPrevCutoff();
+        GODEC_INFO << "RouterDbg 2 route stream offset " << mToRouteStreamOffset;
+        GODEC_INFO << "RouterDbg 2 slice length " << sliceLength;
 
         // Construct time map
         TimeMapEntry timeMapEntry;
@@ -176,6 +186,13 @@ void RouterComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
         mToRouteStreamOffset = sliceTime;
 
         if (lastChunkInUtt) mCurrentUttIdByRoute[routeIdx] = "";
+
+        if (lastChunkInConvo) GODEC_INFO << "RouterDbg 3 last in convo";
+        GODEC_INFO << "RouterDbg 3 slice time " << sliceTime;
+        GODEC_INFO << "RouterDbg 3 prev cutoff " << msgBlock.getPrevCutoff();
+        GODEC_INFO << "RouterDbg 3 route stream offset " << mToRouteStreamOffset;
+        GODEC_INFO << "RouterDbg 3 slice length " << sliceLength;
+
     }
 }
 
