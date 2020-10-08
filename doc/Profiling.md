@@ -42,7 +42,3 @@ Do the following steps:
 
 Note that there is a difference between "algorithmic" latency and "realtime" latency. Algorithmic latency is the latency the algorithm of a component incurs, e.g. a component might need 1 second of input audio to create some output. Realtime latency is the combination of the algorithmic latency plus whatever the CPU incurs (thus making it machine-dependent). In order to only measure the algorithmic latency, slow down the input to a very slow pace.
 
-**Gotcha**
-
-Some networks use Router and Merger components (e.g. to separate speech and nonspeech audio). The components between the Merger and the Router have different timestamps than the rest of the network, so if you for example measure between the initial FileFeeder and a Decoder that is inside the Router-Merge combo, the latency will be nonsensical. In this case  the reference point needs to also be inside that Router-Merge span.
-

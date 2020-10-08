@@ -4,26 +4,28 @@ import math
 
 orig_feats = np.load("python_test.npz")
 times_two_feats = np.load("python_test_times_two_feats.npz")
-if(sorted(orig_feats.files) != sorted(times_two_feats.files)):
+if(orig_feats.files != times_two_feats.files):
   sys.stderr.write("Different entries in times-two npz!\n")
   sys.stderr.flush()
   exit(-1)
-for uttId in orig_feats.files:
+for uttIdx, uttId in enumerate(orig_feats.files):
   if (orig_feats[uttId].shape != times_two_feats[uttId].shape):
     sys.stderr.write("Matrices for utt "+uttId+" have different shape! "+str(orig_feats[uttId].shape)+" vs "+str(times_two_feats[uttId].shape)+"\n")
     sys.stderr.flush()
     exit(-1)
-  orig_featsDouble = orig_feats[uttId]*2
+  orig_featsDouble = orig_feats[uttId]
+  if (uttIdx == 0): # Because of the routing, only the first matrix gets doubled
+    orig_featsDouble = orig_feats[uttId]*2
   maxDiff = np.max(np.abs(np.subtract(orig_featsDouble,times_two_feats[uttId])))
   if (maxDiff > 1E-07):
-    sys.stderr.write("Different matrices for utt "+uttId+"\n")
+    sys.stderr.write("Different times-two matrices for utt "+uttId+"\n")
     sys.stderr.flush()
     exit(-1)
 
 godec_norm_feats = np.load("python_test_norm_feats.npz")
 accum_orig_feats = None
 highestMaxDiff = 0.0
-for uttId in orig_feats.files:
+for uttIdx, uttId in enumerate(orig_feats.files):
   if (accum_orig_feats is None):
     accum_orig_feats = orig_feats[uttId]
   else:
@@ -35,9 +37,8 @@ for uttId in orig_feats.files:
     maxDiff = np.max(np.abs(np.subtract(norm_orig,godec_norm_feats[uttId][rowIdx])))
     highestMaxDiff = max(highestMaxDiff, maxDiff)
     if (maxDiff > 1E-06):
-      sys.stderr.write("Different matrices for utt "+uttId+"\n")
+      sys.stderr.write("Different norm matrices for utt "+uttId+"\n")
       sys.stderr.flush()
       exit(-1)
 
-print("maxDiff= "+str(highestMaxDiff))
 

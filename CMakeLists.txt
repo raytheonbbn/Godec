@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.7)
 
+#set(VERBOSE)
+
 if (NOT (PLATFORM STREQUAL "Linux" OR PLATFORM STREQUAL "Android" OR PLATFORM STREQUAL "RaspberryPi" OR PLATFORM STREQUAL "Windows"))
   message(FATAL_ERROR "Please specify the PLATFORM variable <Linux, Android, RaspberryPi, Windows")
 endif()

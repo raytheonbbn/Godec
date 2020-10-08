@@ -139,7 +139,6 @@ AudioPreProcessorComponent::AudioPreProcessorComponent(std::string id, Component
         ss << SlotStreamedAudio << "_" << channelIdx;
         requiredOutputSlots.push_back(ss.str());
     }
-    requiredOutputSlots.push_back(SlotAudioInfo);
     initOutputs(requiredOutputSlots);
 }
 
@@ -297,10 +296,6 @@ void AudioPreProcessorComponent::ProcessMessage(const DecoderMessageBlock& msgBl
         (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(audioBaseMsg->getFullDescriptorString());
         pushToOutputs(ss.str(), outMsg);
     }
-
-    DecoderMessage_ptr audioInfoMsg = AudioInfoDecoderMessage::create(outTimestamp, mTargetSamplingRate, outputTimePerSample);
-    (boost::const_pointer_cast<DecoderMessage>(audioInfoMsg))->setFullDescriptorString(audioBaseMsg->getFullDescriptorString());
-    pushToOutputs(SlotAudioInfo, audioInfoMsg);
 
     // End of utterance? Reset everything
     if (convStateMsg->mLastChunkInUtt) {

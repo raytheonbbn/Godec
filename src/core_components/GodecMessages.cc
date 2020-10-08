@@ -19,7 +19,6 @@ uuid UUID_NbestDecoderMessage = godec_uuid_gen("e01bbc32-73ad-40d9-9ad6-ce491a5b
 uuid UUID_TimeMapDecoderMessage = godec_uuid_gen("c335ce22-97ae-4b07-b952-6c509e27e6c3");
 uuid UUID_BinaryDecoderMessage = godec_uuid_gen("e754362e-58da-4488-831e-9277f8be1d66");
 uuid UUID_JsonDecoderMessage = godec_uuid_gen("ebe880c8-f6d9-4b7d-8d15-7589302b6946");
-uuid UUID_AudioInfoDecoderMessage = godec_uuid_gen("b1464c2d-8d1e-4e75-bb4e-83632b1201d0");
 
 ProcessingMode StringToProcessMode(std::string s) {
     if (s == "LowLatency") return LowLatency;
@@ -779,80 +778,6 @@ DecoderMessage_ptr NbestDecoderMessage::fromPython(PyObject* pMsg) {
 #endif
 
 /*
-############ Audio Info decoder message ###################
-*/
-
-std::string AudioInfoDecoderMessage::describeThyself() const {
-    std::stringstream ss;
-    ss << DecoderMessage::describeThyself();
-    ss << "Audio Information, sample rate=" << mSampleRate << ", ticks per sample=" << mTicksPerSample << std::endl;
-    return ss.str();
-}
-
-DecoderMessage_ptr AudioInfoDecoderMessage::create(uint64_t time, float sampleRate, float ticksPerSample) {
-    AudioInfoDecoderMessage* msg = new AudioInfoDecoderMessage();
-    msg->setTime(time);
-    msg->mSampleRate = sampleRate;
-    msg->mTicksPerSample = ticksPerSample;
-    return DecoderMessage_ptr(msg);
-}
-
-DecoderMessage_ptr AudioInfoDecoderMessage::clone()  const { return  DecoderMessage_ptr(new AudioInfoDecoderMessage(*this)); }
-
-bool AudioInfoDecoderMessage::mergeWith(DecoderMessage_ptr msg, DecoderMessage_ptr &remainingMsg, bool verbose) {
-    auto mergeMsg = boost::static_pointer_cast<const AudioInfoDecoderMessage>(msg); 
-    if ((mSampleRate != mergeMsg->mSampleRate) && (mTicksPerSample == mergeMsg->mTicksPerSample)) GODEC_ERR << "sample_rate or ticks_per_sample has changed.\n Current message : " << describeThyself() << "\n, to be merged: " << mergeMsg->describeThyself();
-    setTime(mergeMsg->getTime());
-    mSampleRate = mergeMsg->mSampleRate;
-    mTicksPerSample = mergeMsg->mTicksPerSample;
-    return false;
-}
-
-bool AudioInfoDecoderMessage::canSliceAt(uint64_t sliceTime, std::vector<DecoderMessage_ptr>& msgList, uint64_t streamStartOffset, bool verbose) {
-    // Convo state can always be sliced
-    return true;
-}
-bool AudioInfoDecoderMessage::sliceOut(uint64_t sliceTime, DecoderMessage_ptr& sliceMsg, std::vector<DecoderMessage_ptr>& msgList, int64_t streamStartOffset, bool verbose) {
-    auto firstMsg = boost::static_pointer_cast<const AudioInfoDecoderMessage>(msgList[0]);
-    if (firstMsg->getTime() == sliceTime) {
-        sliceMsg = msgList[0];
-        msgList.erase(msgList.begin());
-        return true;
-    } else {
-        sliceMsg = AudioInfoDecoderMessage::create(sliceTime,
-                   firstMsg->mSampleRate, firstMsg->mTicksPerSample);
-        return true;
-    }
-}
-
-void AudioInfoDecoderMessage::shiftInTime(int64_t deltaT) {
-    setTime((int64_t)getTime()+deltaT);
-}
-
-jobject AudioInfoDecoderMessage::toJNI(JNIEnv* env) {
-    GODEC_ERR << "AudioInfoDecoderMessage::toJNI not implemented yet!";
-    return NULL;
-};
-
-DecoderMessage_ptr AudioInfoDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
-    GODEC_ERR << "AudioInfoDecoderMessage::fromJNI not implemented yet!";
-    return NULL;
-}
-
-#ifndef ANDROID
-PyObject* AudioInfoDecoderMessage::toPython() {
-    GODEC_ERR << "AudioInfoDecoderMessage::toPython not implemented yet!";
-    return NULL;
-}
-DecoderMessage_ptr AudioInfoDecoderMessage::fromPython(PyObject* pMsg) {
-    GODEC_ERR << "AudioInfoDecoderMessage::fromPython not implemented yet!";
-    return NULL;
-
-}
-#endif
-
-
-/*
 ############ Conversation state decoder message ###################
 */
 
@@ -1013,77 +938,6 @@ DecoderMessage_ptr ConversationStateDecoderMessage::fromPython(PyObject* pMsg) {
     DecoderMessage_ptr outMsg = ConversationStateDecoderMessage::create(time, uttId, lastChunkInUtt, convoId, lastChunkInConvo);
     (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(descriptorString);
     return outMsg;
-}
-#endif
-
-
-/*
-############ TimeMap decoder message ###################
-*/
-
-std::string TimeMapDecoderMessage::describeThyself() const {
-    std::stringstream ss;
-    ss << DecoderMessage::describeThyself();
-    ss << "TimeMap, route " << mMapping.routeIndex << " (" << mMapping.startOrigTime << "," << mMapping.endOrigTime << ")->(" << mMapping.startMappedTime << "," << mMapping.endMappedTime << ")" << std::endl;
-    return ss.str();
-}
-
-DecoderMessage_ptr TimeMapDecoderMessage::create(uint64_t _time, TimeMapEntry timeMapping) {
-    TimeMapDecoderMessage* msg = new TimeMapDecoderMessage();
-    msg->setTime(_time);
-    msg->mMapping = timeMapping;
-    return DecoderMessage_ptr(msg);
-}
-
-
-
-DecoderMessage_ptr TimeMapDecoderMessage::clone()  const { return  DecoderMessage_ptr(new TimeMapDecoderMessage(*this)); }
-bool TimeMapDecoderMessage::mergeWith(DecoderMessage_ptr msg, DecoderMessage_ptr &remainingMsg, bool verbose) {
-    auto newTimeMapMsg = boost::static_pointer_cast<const TimeMapDecoderMessage>(msg);
-    if (mMapping.routeIndex == newTimeMapMsg->mMapping.routeIndex) {
-        mMapping.endMappedTime = newTimeMapMsg->mMapping.endMappedTime;
-        mMapping.endOrigTime = newTimeMapMsg->mMapping.endOrigTime;
-        setTime(newTimeMapMsg->getTime());
-        return false;
-    } else {
-        remainingMsg = msg;
-        return true;
-    }
-}
-bool TimeMapDecoderMessage::canSliceAt(uint64_t sliceTime, std::vector<DecoderMessage_ptr>& msgList, uint64_t streamStartOffset, bool verbose) {
-    auto firstMsg = boost::static_pointer_cast<const TimeMapDecoderMessage>(msgList[0]);
-    // Convo state can only be sliced at boundary
-    return firstMsg->getTime() == sliceTime;
-}
-bool TimeMapDecoderMessage::sliceOut(uint64_t sliceTime, DecoderMessage_ptr& sliceMsg, std::vector<DecoderMessage_ptr>& msgList, int64_t streamStartOffset, bool verbose) {
-    auto firstMsg = boost::static_pointer_cast<const TimeMapDecoderMessage>(msgList[0]);
-    if (firstMsg->getTime() == sliceTime) {
-        sliceMsg = msgList[0];
-        msgList.erase(msgList.begin());
-        return true;
-    } else {
-        GODEC_ERR << "We should never be here";
-    }
-    return false;
-}
-
-void TimeMapDecoderMessage::shiftInTime(int64_t deltaT) {
-    GODEC_ERR << "shiftInTime() was called on a TimeMapDecoderMessage. This likely happened because the timemap stream was passed into a Router component as the stream to be routed. This is probably a mistake.";
-}
-
-jobject TimeMapDecoderMessage::toJNI(JNIEnv* env) {
-    GODEC_ERR << "TimeMapDecoderMessage::toJNI not implemented yet!";
-    return NULL;
-};
-
-#ifndef ANDROID
-PyObject* TimeMapDecoderMessage::toPython() {
-    GODEC_ERR << "TimeMapDecoderMessage::toPython not implemented yet";
-    return nullptr;
-}
-DecoderMessage_ptr TimeMapDecoderMessage::fromPython(PyObject* pMsg) {
-    GODEC_ERR << "TimeMapDecoderMessage::fromPython not implemented yet";
-    return DecoderMessage_ptr();
 }
 #endif
 
