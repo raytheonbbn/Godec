@@ -45,6 +45,10 @@ This component supports both BinaryDecoderMessage as well as AudioDecoderMessage
 | --- | --- | 
 | streamed\_audio | AudioDecoderMessage,BinaryDecoderMessage|
 
+#### Outputs
+| Output slot | 
+| --- | 
+| audio\_info | 
 
 
 ## Average

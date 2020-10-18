@@ -394,18 +394,6 @@ inline void serialize(
     split_free(ar, g, version);
 }
 
-template<class Archive>
-inline void serialize(
-    Archive &ar,
-    Godec::TimeMapEntry &t,
-    const unsigned int file_version
-) {
-    ar & t.startOrigTime;
-    ar & t.endOrigTime;
-    ar & t.startMappedTime;
-    ar & t.endMappedTime;
-    ar & t.routeIndex;
-}
 }
 }
 
