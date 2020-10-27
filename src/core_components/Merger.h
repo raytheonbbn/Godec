@@ -14,7 +14,7 @@ class MergerComponent : public LoopProcessor {
   private:
     virtual void ProcessMessage(const DecoderMessageBlock& msgBlock) override;
     bool RequiresConvStateInput() override { return false; }
-    
+
 };
 
 }

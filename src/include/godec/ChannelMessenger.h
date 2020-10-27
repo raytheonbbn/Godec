@@ -224,7 +224,7 @@ class LoopProcessor {
     static std::string SlotTimeMap;
     static std::string SlotControl;
     static std::string SlotSearchOutput;
-	static std::string SlotAudioInfo;
+    static std::string SlotAudioInfo;
 
     static std::string SlotInputStreamPrefix;
     static std::string SlotOutputStream;
@@ -265,7 +265,7 @@ class LoopProcessor {
     static std::string SlotRoutingStream;
     static std::string SlotToRouteStream;
     static std::string SlotRoutedOutputStreamedPrefix;
-    
+
 
     void connectInputs(unordered_map<std::string, std::set<uuid>> requiredSlots);
 

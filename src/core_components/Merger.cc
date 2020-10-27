@@ -42,7 +42,7 @@ MergerComponent::~MergerComponent() {}
 void MergerComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
     MergerComponent::ProcessIgnoreDataMessageBlock(msgBlock);
 }
-   
+
 
 
 /*

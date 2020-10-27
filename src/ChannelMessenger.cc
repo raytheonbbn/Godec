@@ -88,7 +88,7 @@ void DecoderMessage::PythonGetDecoderMessageVals(PyObject* pMsg, std::string& ta
 */
 LoopProcessor::LoopProcessor(std::string id, ComponentGraphConfig* pt) : mVerbose(false), mIsFinished(false) {
     mId = id;
-    
+
     mComponentGraph = pt->GetComponentGraph();
 
     if (pt->get_optional_READ_DECLARATION_BEFORE_USE<bool>("verbose")) {
@@ -145,7 +145,7 @@ void LoopProcessor::initOutputs(std::list<std::string> requiredSlots) {
 
 void LoopProcessor::connectInputs(unordered_map<std::string, std::set<uuid>> requiredSlots) {
     bool convoStateAlreadyDefined = false;
-    
+
     for (auto it = mInputSlots.begin(); it != mInputSlots.end(); it++) {
         if (it->first == SlotConversationState) convoStateAlreadyDefined = true;
     }
