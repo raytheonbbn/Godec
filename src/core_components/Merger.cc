@@ -40,6 +40,13 @@ MergerComponent::MergerComponent(std::string id, ComponentGraphConfig* configPt)
 MergerComponent::~MergerComponent() {}
 
 void MergerComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
+    MergerComponent::ProcessIgnoreDataMessageBlock(msgBlock);
+}
+   
+
+
+/*
+void MergerComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
     for(int streamIdx = 0; streamIdx < mNumStreams; streamIdx++) {
         std::stringstream inputStreamSs;
         inputStreamSs << SlotInputStreamPrefix << streamIdx;
@@ -53,5 +60,5 @@ void MergerComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
             pushToOutputs(SlotOutputStream, streamBaseMsg);
         }
     }
-}
+}*/
 }

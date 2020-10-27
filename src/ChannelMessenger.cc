@@ -1,6 +1,7 @@
 #include <godec/ChannelMessenger.h>
 #include <godec/ComponentGraph.h>
 #include "core_components/GodecMessages.h"
+#include "core_components/Router.h"
 #include <godec/json.hpp>
 #include <boost/bimap.hpp>
 #include <boost/foreach.hpp>
@@ -40,6 +41,9 @@ std::string LoopProcessor::SlotTimeMap = "time_map";
 std::string LoopProcessor::SlotControl = "control";
 std::string LoopProcessor::SlotSearchOutput = "fst_search_output";
 std::string LoopProcessor::SlotAudioInfo = "audio_info";
+std::string LoopProcessor::SlotInputStreamPrefix = "input_stream_";
+std::string LoopProcessor::SlotOutputStream = "output_stream";
+
 
 std::string DecoderMessage::describeThyself() const {
     std::stringstream ss;
@@ -84,6 +88,7 @@ void DecoderMessage::PythonGetDecoderMessageVals(PyObject* pMsg, std::string& ta
 */
 LoopProcessor::LoopProcessor(std::string id, ComponentGraphConfig* pt) : mVerbose(false), mIsFinished(false) {
     mId = id;
+    
     mComponentGraph = pt->GetComponentGraph();
 
     if (pt->get_optional_READ_DECLARATION_BEFORE_USE<bool>("verbose")) {
@@ -140,6 +145,7 @@ void LoopProcessor::initOutputs(std::list<std::string> requiredSlots) {
 
 void LoopProcessor::connectInputs(unordered_map<std::string, std::set<uuid>> requiredSlots) {
     bool convoStateAlreadyDefined = false;
+    
     for (auto it = mInputSlots.begin(); it != mInputSlots.end(); it++) {
         if (it->first == SlotConversationState) convoStateAlreadyDefined = true;
     }
@@ -357,6 +363,24 @@ void LoopProcessor::pushToOutputs(std::string slot, DecoderMessage_ptr msg) {
         (*it)->put(msg);
     }
 }
+
+void LoopProcessor::ProcessIgnoreDataMessageBlock(const DecoderMessageBlock& msgBlock) {
+    for(int streamIdx = 0; streamIdx < mNumStreams; streamIdx++) {
+        std::stringstream inputStreamSs;
+        inputStreamSs << SlotInputStreamPrefix << streamIdx;
+        auto streamBaseMsg = msgBlock.getBaseMsg(inputStreamSs.str());
+        std::stringstream convStateSs;
+        convStateSs << SlotConversationState << "_" << streamIdx;
+        auto convStateMsg = msgBlock.get<ConversationStateDecoderMessage>(convStateSs.str());
+        auto ignoreData = convStateMsg->getDescriptor(RouterComponent::IgnoreData);
+        if (ignoreData == "") GODEC_ERR << getLPId() << ": Stream " << streamIdx << " has a conversation state connected to it that did not come from a Router!";
+        if (ignoreData == "false") {
+            pushToOutputs(SlotOutputStream, streamBaseMsg);
+        }
+    }
+}
+
+
 
 GlobalComponentGraphVals::GlobalComponentGraphVals() {
     put<bool>(LoopProcessor::GatherRuntimeStats, false);
