@@ -21,17 +21,22 @@ MergerComponent::MergerComponent(std::string id, ComponentGraphConfig* configPt)
     LoopProcessor(id, configPt) {
     mNumStreams = configPt->get<int>("num_streams", "Number of streams that are merged");
 
+    GODEC_INFO << getLPId() << ":num streams = " << mNumStreams;
     for(int streamIdx = 0; streamIdx < mNumStreams; streamIdx++) {
         std::stringstream inputStreamSs;
         inputStreamSs << SlotInputStreamPrefix << streamIdx;
+        GODEC_INFO << getLPId() << ":stream input = " << inputStreamSs.str();
+        
         addInputSlotAndUUID(inputStreamSs.str(), UUID_AnyDecoderMessage); //GodecDocIgnore
         // addInputSlotAndUUID(input_streams_[0-9], UUID_AnyDecoderMessage);  // Replacement for above godec doc ignore
         std::stringstream convStateSs;
         convStateSs << SlotConversationState << "_" << streamIdx;
+        GODEC_INFO << getLPId() << ":convstate input = " << convStateSs.str();
         addInputSlotAndUUID(convStateSs.str(), UUID_ConversationStateDecoderMessage); //GodecDocIgnore
         // addInputSlotAndUUID(conversation_state_[0-9], UUID_ConverstionStateDecoderMessage);  // Replacement for above godec doc ignore
     }
-
+    GODEC_INFO << getLPId() << ":output = " << SlotOutputStream;
+        
     std::list<std::string> requiredOutputSlots;
     requiredOutputSlots.push_back(SlotOutputStream);
     initOutputs(requiredOutputSlots);
