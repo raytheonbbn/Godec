@@ -26,7 +26,7 @@ MergerComponent::MergerComponent(std::string id, ComponentGraphConfig* configPt)
         std::stringstream inputStreamSs;
         inputStreamSs << SlotInputStreamPrefix << streamIdx;
         GODEC_INFO << getLPId() << ":stream input = " << inputStreamSs.str();
-        
+
         addInputSlotAndUUID(inputStreamSs.str(), UUID_AnyDecoderMessage); //GodecDocIgnore
         // addInputSlotAndUUID(input_streams_[0-9], UUID_AnyDecoderMessage);  // Replacement for above godec doc ignore
         std::stringstream convStateSs;
@@ -36,7 +36,7 @@ MergerComponent::MergerComponent(std::string id, ComponentGraphConfig* configPt)
         // addInputSlotAndUUID(conversation_state_[0-9], UUID_ConverstionStateDecoderMessage);  // Replacement for above godec doc ignore
     }
     GODEC_INFO << getLPId() << ":output = " << SlotOutputStream;
-        
+
     std::list<std::string> requiredOutputSlots;
     requiredOutputSlots.push_back(SlotOutputStream);
     initOutputs(requiredOutputSlots);

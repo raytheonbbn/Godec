@@ -86,7 +86,7 @@ void RouterComponent::ProcessMessage(const DecoderMessageBlock& msgBlock) {
         for (int routeIdx = 0; routeIdx < mNumRoutes; routeIdx++) {
             DecoderMessage_ptr outConvMsg = ConversationStateDecoderMessage::create(sliceTime, utteranceId, lastChunkInUtt, convoId, lastChunkInConvo);
             (boost::const_pointer_cast<DecoderMessage>(outConvMsg))->addDescriptor(IgnoreData, routeIdx == targetRouteIdx ? "false" : "true");
-            // output 
+            // output
             std::string ignoreData = routeIdx == targetRouteIdx ? "false" : "true";
             GODEC_INFO << getLPId() << ": Conversation state ignoreData is " << ignoreData;
             GODEC_INFO << getLPId() << ": Conversation state description is " << outConvMsg->describeThyself();
