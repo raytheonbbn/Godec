@@ -192,7 +192,7 @@ matrix:
       - mv $HOME/zlib/msvc2015_64/include/zlib/* $HOME/zlib/msvc2015_64/include 
       - mv $HOME/zlib/msvc2015_64/lib/zlib/* $HOME/zlib/msvc2015_64/lib
       - export PATH=$PATH:$HOME/apache-maven-3.6.3/bin:$HOME/$JAVA_HOME/bin
-      - export CMAKE_ARGS="-DPYTHON_INCLUDE_DIR=C:/Python39/include -DPYTHON_LIBRARY=C:/Python39/libs -DPYTHON_EXECUTABLE=C:/Python39/python.exe -DZLIB_ROOT=$HOME/zlib/msvc2015_64 -DZLIB_LIBRARY=$HOME/zlib/msvc2015_64/lib/zlib.lib -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_INCLUDEDIR=$HOME/boost_1_68_0 -DBOOST_LIBRARYDIR=$HOME/boost_1_68_0/lib64-msvc-14.1 -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DGODEC_ADDITIONAL_INCLUDE_DIRS=C:/Python39/lib/site-packages/numpy/core/include"
+      - export CMAKE_ARGS="-DPYTHON_INCLUDE_DIR=C:\Python39\include -DPYTHON_LIBRARY=C:\Python39\libs -DPYTHON_EXECUTABLE=C:\Python39\python.exe -DZLIB_ROOT=$HOME/zlib/msvc2015_64 -DZLIB_LIBRARY=$HOME/zlib/msvc2015_64/lib/zlib.lib -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_INCLUDEDIR=$HOME/boost_1_68_0 -DBOOST_LIBRARYDIR=$HOME/boost_1_68_0/lib64-msvc-14.1 -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DGODEC_ADDITIONAL_INCLUDE_DIRS=C:/Python39/lib/site-packages/numpy/core/include"
       - export MY_MAKE_COMMAND="\"$MY_CMAKE\" --build . --target install --config Release"
 
 script:
