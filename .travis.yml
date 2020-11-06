@@ -180,7 +180,7 @@ matrix:
       - wget -q http://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz
       - tar xf eigen-3.3.7.tar.gz -C $HOME
       - export EIGEN_ROOT=$HOME/eigen-3.3.7
-      - choco install python
+      - choco install python --version=3.8.3
       - choco install numpy
       - wget -q https://download.java.net/java/GA/jdk12.0.2/e482c34c86bd4bf8b56c0b35558996b9/10/GPL/openjdk-12.0.2_windows-x64_bin.zip
       - unzip openjdk-12.0.2_windows-x64_bin.zip -d $HOME
@@ -192,7 +192,7 @@ matrix:
       - mv $HOME/zlib/msvc2015_64/include/zlib/* $HOME/zlib/msvc2015_64/include 
       - mv $HOME/zlib/msvc2015_64/lib/zlib/* $HOME/zlib/msvc2015_64/lib
       - export PATH=$PATH:$HOME/apache-maven-3.6.3/bin:$HOME/$JAVA_HOME/bin
-      - export CMAKE_ARGS="-DPYTHON_INCLUDE_DIR=C:\Python39\include -DPYTHON_LIBRARY=C:\Python39\libs -DPYTHON_EXECUTABLE=C:\Python39\python.exe -DZLIB_ROOT=$HOME/zlib/msvc2015_64 -DZLIB_LIBRARY=$HOME/zlib/msvc2015_64/lib/zlib.lib -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_INCLUDEDIR=$HOME/boost_1_68_0 -DBOOST_LIBRARYDIR=$HOME/boost_1_68_0/lib64-msvc-14.1 -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DGODEC_ADDITIONAL_INCLUDE_DIRS=C:/Python39/lib/site-packages/numpy/core/include"
+      - export CMAKE_ARGS="-DZLIB_ROOT=$HOME/zlib/msvc2015_64 -DZLIB_LIBRARY=$HOME/zlib/msvc2015_64/lib/zlib.lib -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_INCLUDEDIR=$HOME/boost_1_68_0 -DBOOST_LIBRARYDIR=$HOME/boost_1_68_0/lib64-msvc-14.1 -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DGODEC_ADDITIONAL_INCLUDE_DIRS=C:/Python38/lib/site-packages/numpy/core/include"
       - export MY_MAKE_COMMAND="\"$MY_CMAKE\" --build . --target install --config Release"
 
 script:
