@@ -97,10 +97,10 @@ matrix:
       - tar xf data.tar.xz -C $HOME/jre
       - mkdir $HOME/pydev
       - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/p/python3.5/libpython3.5_3.5.3-1+deb9u2_armhf.deb
-      - ar x libpython3.5_3.5.3-1+deb9u1_armhf.deb
+      - ar x libpython3.5_3.5.3-1+deb9u2_armhf.deb
       - tar xf data.tar.xz -C $HOME/pydev 
       - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/p/python3.5/libpython3.5-dev_3.5.3-1+deb9u2_armhf.deb
-      - ar x libpython3.5-dev_3.5.3-1+deb9u1_armhf.deb
+      - ar x libpython3.5-dev_3.5.3-1+deb9u2_armhf.deb
       - tar xf data.tar.xz -C $HOME/pydev 
       - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/p/python-numpy/python3-numpy_1.12.1-3_armhf.deb
       - ar x python3-numpy_1.12.1-3_armhf.deb
@@ -192,7 +192,7 @@ matrix:
       - mv $HOME/zlib/msvc2015_64/include/zlib/* $HOME/zlib/msvc2015_64/include 
       - mv $HOME/zlib/msvc2015_64/lib/zlib/* $HOME/zlib/msvc2015_64/lib
       - export PATH=$PATH:$HOME/apache-maven-3.6.3/bin:$HOME/$JAVA_HOME/bin
-      - export CMAKE_ARGS="-DPYTHON_INCLUDE_DIR=$(python3 -c "from distutils.sysconfig import get_python_inc; print(get_python_inc())") -DPYTHON_LIBRARY=$(python3 -c "import distutils.sysconfig as sysconfig; print(sysconfig.get_config_var('LIBDIR'))") -DZLIB_ROOT=$HOME/zlib/msvc2015_64 -DZLIB_LIBRARY=$HOME/zlib/msvc2015_64/lib/zlib.lib -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_INCLUDEDIR=$HOME/boost_1_68_0 -DBOOST_LIBRARYDIR=$HOME/boost_1_68_0/lib64-msvc-14.1 -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DGODEC_ADDITIONAL_INCLUDE_DIRS=C:/Python39/lib/site-packages/numpy/core/include"
+      - export CMAKE_ARGS="-DPYTHON_INCLUDE_DIR=C:/Python39/include -DPYTHON_LIBRARY=C:/Python39/libs -DZLIB_ROOT=$HOME/zlib/msvc2015_64 -DZLIB_LIBRARY=$HOME/zlib/msvc2015_64/lib/zlib.lib -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_INCLUDEDIR=$HOME/boost_1_68_0 -DBOOST_LIBRARYDIR=$HOME/boost_1_68_0/lib64-msvc-14.1 -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DGODEC_ADDITIONAL_INCLUDE_DIRS=C:/Python39/lib/site-packages/numpy/core/include"
       - export MY_MAKE_COMMAND="\"$MY_CMAKE\" --build . --target install --config Release"
 
 script:
