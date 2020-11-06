@@ -92,7 +92,7 @@ matrix:
       - mkdir $HOME/jdk
       - tar xf data.tar.xz -C $HOME/jdk
       - wget -q http://raspbian.mirror.constant.com/raspbian/pool/main/o/openjdk-8/openjdk-8-jre-headless_8u272-b10-0%2Bdeb9u1_armhf.deb
-      - ar x openjdk-8-jre-headless_8u272-b10-0%2Bdeb9u1_armhf.deb
+      - ar x openjdk-8-jre-headless_8u272-b10-0+deb9u1_armhf.deb
       - mkdir $HOME/jre
       - tar xf data.tar.xz -C $HOME/jre
       - mkdir $HOME/pydev
