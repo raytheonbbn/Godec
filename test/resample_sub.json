@@ -14,6 +14,7 @@
     },
     "outputs":
     {
+	  "audio_info": "audio_info",
       "streamed_audio_0": "preproc_audio"
     }
   },
