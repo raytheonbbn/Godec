@@ -25,7 +25,6 @@ extern uuid UUID_AudioDecoderMessage;
 extern uuid UUID_FeaturesDecoderMessage;
 extern uuid UUID_MatrixDecoderMessage;
 extern uuid UUID_NbestDecoderMessage;
-extern uuid UUID_TimeMapDecoderMessage;
 extern uuid UUID_BinaryDecoderMessage;
 extern uuid UUID_JsonDecoderMessage;
 extern uuid UUID_AudioInfoDecoderMessage;
@@ -38,14 +37,6 @@ enum ProcessingMode {
 };
 
 ProcessingMode StringToProcessMode(std::string s);
-
-struct TimeMapEntry {
-    int64_t startOrigTime;
-    int64_t endOrigTime;
-    int64_t startMappedTime;
-    int64_t endMappedTime;
-    int routeIndex;
-};
 
 class AudioDecoderMessage : public DecoderMessage {
   public:
@@ -255,35 +246,6 @@ class ConversationStateDecoderMessage : public DecoderMessage {
     }
 };
 
-class TimeMapDecoderMessage : public DecoderMessage {
-  public:
-    TimeMapEntry mMapping;
-
-    std::string describeThyself() const;
-    DecoderMessage_ptr clone() const;
-
-    static DecoderMessage_ptr create(uint64_t time, TimeMapEntry timeMapping);
-    bool mergeWith(DecoderMessage_ptr msg, DecoderMessage_ptr &remainingMsg, bool verbose);
-    bool canSliceAt(uint64_t sliceTime, std::vector<DecoderMessage_ptr>& msgList, uint64_t streamStartOffset, bool verbose);
-    bool sliceOut(uint64_t sliceTime, DecoderMessage_ptr& sliceMsg, std::vector<DecoderMessage_ptr>& msgList, int64_t streamStartOffset, bool verbose);
-    void shiftInTime(int64_t deltaT);
-    jobject toJNI(JNIEnv* env);
-#ifndef ANDROID
-    PyObject* toPython();
-    static DecoderMessage_ptr fromPython(PyObject* pMsg);
-#endif
-
-    uuid getUUID() const { return UUID_TimeMapDecoderMessage; }
-    static uuid getUUIDStatic() { return UUID_TimeMapDecoderMessage; }
-
-  private:
-    friend class boost::serialization::access;
-    template<typename Archive>
-    void serialize(Archive & ar, const unsigned int version) {
-        ar & boost::serialization::base_object<DecoderMessage>(*this);
-        ar & mMapping;
-    }
-};
 class BinaryDecoderMessage : public DecoderMessage {
   public:
     std::vector<unsigned char> mData;
@@ -432,18 +394,6 @@ inline void serialize(
     split_free(ar, g, version);
 }
 
-template<class Archive>
-inline void serialize(
-    Archive &ar,
-    Godec::TimeMapEntry &t,
-    const unsigned int file_version
-) {
-    ar & t.startOrigTime;
-    ar & t.endOrigTime;
-    ar & t.startMappedTime;
-    ar & t.endMappedTime;
-    ar & t.routeIndex;
-}
 }
 }
 

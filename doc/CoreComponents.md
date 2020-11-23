@@ -45,6 +45,10 @@ This component supports both BinaryDecoderMessage as well as AudioDecoderMessage
 | --- | --- | 
 | streamed\_audio | AudioDecoderMessage,BinaryDecoderMessage|
 
+#### Outputs
+| Output slot | 
+| --- | 
+| audio\_info | 
 
 
 ## Average
@@ -214,7 +218,7 @@ Component that writes stream to file
 ### Extended description:
 The writing equivalent to the FileFeeder component, for saving output. Available "input_type":  
   
-"audio": For writing AudioDecoderMessage messages. "output_file_prefix" specifies the path prefix that each utterance gets written to  
+"audio": For writing AudioDecoderMessage messages. "output_file_prefix" specifies the path prefix that each utterance gets written to. The incoming audio are float values expected to be normalied to -1.0/1.0 range  
   
 "raw_text": BinaryDecoderMessage expected that gets converted into text and written into "output_file"  
   
@@ -320,7 +324,7 @@ Applies a matrix (from a stream) to an incoming feature stream
 Merges streams that were created by Router. Streams are specified as input\_stream\_0, input\_stream\_1 etc, up to \"num\_streams\". Time map is the one created by the Router
 
 ### Extended description:
-Refer to the Router extended description to a more detailed description  
+Refer to the Router extended description to a more detailed description. This component expects all conversation states from the upstream Router, as well as all the processed streams  
   
 
 
@@ -332,8 +336,8 @@ Refer to the Router extended description to a more detailed description
 #### Inputs
 | Input slot | Message Type | 
 | --- | --- | 
+| conversation\_state\_[0-9] | ConverstionStateDecoderMessage|
 | input\_streams\_[0-9] | AnyDecoderMessage|
-| time\_map | TimeMapDecoderMessage|
 
 #### Outputs
 | Output slot | 
@@ -410,15 +414,13 @@ Look at `test/python_test.json` for an example.
 Splits an incoming stream into separate streams, based on the binary decision of another input stream
 
 ### Extended description:
-The router component splits an incoming stream into several streams ("num_outputs"), with two major modes:  
+The router component can be used to split streams across several branches (e.g. if you have a language detector upstream and want to direct the streams to the language-specific component). The mechanism is very easy, the Router create N output conversation state message streams, each of which has the "ignore_data" set to true or false, depending on the routing at that point. The branches' components can check this flag and do some optimization (while still emitting empty messages that account for the stream time). So, all branch components see all the data. The Merger component can be used downstream to merge the output together (it chooses the right results from each stream according to those conversation state messages.  
+  
+There are two modes the Router decides where to route:  
   
 "sad_nbest": "routing_stream" is expected to be an NbestDecoderMessage, where the 0-th nbest entry is expected to contain a sequence of 0 (nonspeech) or 1 (speech), which the router will use to route the stream  
   
-"utterance_round_robin": Simple round robin on an utterance-by-utterance basis (pass in ConversationStateDecoerMessage for "routing_stream")  
-  
-Very important note: The output streams have completely new timestamps, that's why for each "output_stream_" stream there is a corresponding "conversation_state_" for that stream. If you from there on you only care about these downstream streams, there is no issue, HOWEVER, you can't combine one of these streams with another stream from further upstream, since they have entirely different timestamps. If you WANT to combine things again, you need to re-merge these redefined streams together with the `Merger` component. The `Merger` component takes in the `time_map` stream which tells it how to combine the separate stream into one original one again.  
-  
-One more subtle note: At the end of a "conversation" (as defined by the ConversationStateDecoderMessage), in order for all substreams to see this signal, the Router holds off a small amount so it can spread it among all streams at the end with that signal. When you re-merge the streams with the `Merger` component, this will result in a sequence of very short utterances that the downstream components should be able to deal with. This is an obscure edge case that only occurs at the of conversations.  
+"utterance_round_robin": Simple round robin on an utterance-by-utterance basis  
   
 
 
@@ -432,14 +434,11 @@ One more subtle note: At the end of a "conversation" (as defined by the Conversa
 | Input slot | Message Type | 
 | --- | --- | 
 | routing\_stream | AnyDecoderMessage|
-| stream\_to\_route | AnyDecoderMessage|
 
 #### Outputs
 | Output slot | 
 | --- | 
 | Slot: conversation\_state\_[0-9] | 
-| Slot: output\_stream\_[0-9] | 
-| time\_map | 
 
 
 ## SoundcardPlayer

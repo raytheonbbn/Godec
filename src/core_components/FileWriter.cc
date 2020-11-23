@@ -185,8 +185,10 @@ void FileWriterComponent::WriteJsonOutput(boost::shared_ptr<const JsonDecoderMes
         auto audioMsg =msgBlock.get<AudioDecoderMessage>(SlotStreamedAudio);
         float secondsPerTick = 1.0 / (audioMsg->mSampleRate*audioMsg->mTicksPerSample);
 
-        // Ralf: This is an incredibly ugly allowance for the fact that CTMs are in reference to the analist's audio file
-        utterance_offset_in_file = audioMsg->getDescriptor("utterance_offset_in_file") != "" ? boost::lexical_cast<float>(audioMsg->getDescriptor("utterance_offset_in_file")) : 0;
+        // This is an incredibly ugly allowance for the fact that CTMs are in reference to the analist's audio file
+        if (audioMsg->getDescriptor("utterance_offset_in_file") != "" && boost::lexical_cast<float>(audioMsg->getDescriptor("utterance_offset_in_file")) != mPrevConvoEndTimeInSecondsStreamBased) {
+            mPrevConvoEndTimeInSecondsStreamBased = boost::lexical_cast<float>(audioMsg->getDescriptor("utterance_offset_in_file"));
+        }
         std::string file = audioMsg->getDescriptor("wave_file_name") != "" ? audioMsg->getDescriptor("wave_file_name") : "dummy";
         std::string channel = audioMsg->getDescriptor("channel") == "1" ? "A" : "B";
         json_output_writer << std::fixed << std::setprecision(2);
@@ -194,7 +196,8 @@ void FileWriterComponent::WriteJsonOutput(boost::shared_ptr<const JsonDecoderMes
         if (jsonOutputFormat == "ctm") {
             for (size_t i = 0; i < j["words"].size(); ++i) {
                 json w = j["words"][i];
-                float wordBeginInSeconds = utterance_offset_in_file + mPrevConvoEndTimeInSecondsStreamBased + (w["beginTime"].get<int64_t>() - mPrevConvoEndTimeInTicksStreamBased + 1) * secondsPerTick;
+
+                float wordBeginInSeconds = mPrevConvoEndTimeInSecondsStreamBased + (w["beginTime"].get<int64_t>() - mPrevConvoEndTimeInTicksStreamBased + 1) * secondsPerTick;
                 float wordDurationInSeconds = w["duration"].get<int64_t>() * secondsPerTick;
 
                 json_output_writer << file << " "
@@ -215,7 +218,7 @@ void FileWriterComponent::WriteJsonOutput(boost::shared_ptr<const JsonDecoderMes
                 json_output_writer << std::endl;
             }
         } else if (jsonOutputFormat == "fst_search") {
-            float beginTime = utterance_offset_in_file + mPrevConvoEndTimeInSecondsStreamBased + (j["beginTime"].get<int64_t>() - mPrevConvoEndTimeInTicksStreamBased + 1) * secondsPerTick;
+            float beginTime = mPrevConvoEndTimeInSecondsStreamBased + (j["beginTime"].get<int64_t>() - mPrevConvoEndTimeInTicksStreamBased + 1) * secondsPerTick;
             for (size_t i = 0; i < j["searchOutput"].size(); ++i) {
                 json& w = j["searchOutput"][i];
                 float wordBeginInSeconds = beginTime + w["relativeBeginTime"].get<int64_t>() * secondsPerTick;
@@ -230,15 +233,11 @@ void FileWriterComponent::WriteJsonOutput(boost::shared_ptr<const JsonDecoderMes
             }
         }
 
-        // Ralf: This is an incredibly ugly allowance for the fact that CTMs are in reference to the analist's audio file. Pt II
+        // This is an incredibly ugly allowance for the fact that CTMs are in reference to the analist's audio file. Pt II
         auto origConvMsg = msgBlock.get<ConversationStateDecoderMessage>(SlotFileFeederConvstate);
         if (origConvMsg->mLastChunkInUtt) {
-            mPrevConvoEndTimeInSecondsStreamBased = 0.0;
-        } else {
-            int64_t timeDeltaInTicks = origConvMsg->getTime() - mPrevConvoEndTimeInTicksStreamBased;
-            mPrevConvoEndTimeInSecondsStreamBased += timeDeltaInTicks * secondsPerTick;
+            mPrevConvoEndTimeInTicksStreamBased = convMsg->getTime();
         }
-        mPrevConvoEndTimeInTicksStreamBased = origConvMsg->getTime();
     } else if (jsonOutputFormat == "mt") {
         json j = jsonMsg->getJsonObj();
         const std::string& translatedText = j["translatedText"].get<std::string>();

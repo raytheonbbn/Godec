@@ -1,4 +1,5 @@
 {
+  // This test tests several things at once: The Python component, as well as the Router/Merger functionality. Only the first feature message gets routed through the Python component, the others are untouched, and get merged back together again. A Python script then checks the output for correctness
   "file_feeder":
   {
     "verbose": "false",
@@ -14,6 +15,23 @@
       "conversation_state": "convstate"
     }
   },
+  "router":
+  {
+    "verbose": "false",
+    "type": "Router",
+    "router_type": "utterance_round_robin",
+    "num_outputs": "3",
+    "inputs":
+    {
+      "conversation_state": "convstate"
+    },
+    "outputs":
+    {
+      "conversation_state_0": "convstate_0",
+      "conversation_state_1": "convstate_1",
+      "conversation_state_2": "convstate_2"
+    }
+  },
   "python":
   {
     "verbose": "false",
@@ -27,7 +45,7 @@
     "expected_outputs": "features",
     "inputs":
     {
-      "conversation_state": "convstate",
+      "conversation_state": "convstate_0",
       "features": "features"
     },
     "outputs":
@@ -50,11 +68,30 @@
     "inputs":
     {
       "features": "features",
-      "conversation_state": "convstate"
+      "conversation_state": "convstate_0"
     },
     "outputs":
     {
       "features": "norm_features"
+    }
+  },
+  "merger":
+  {
+    "verbose": "false",
+    "type": "Merger",
+    "num_streams": "3",
+    "inputs":
+    {
+      "input_stream_0": "times_two_features",
+      "input_stream_1": "features",
+      "input_stream_2": "features",
+      "conversation_state_0": "convstate_0",
+      "conversation_state_1": "convstate_1",
+      "conversation_state_2": "convstate_2"
+    },
+    "outputs":
+    {
+      "output_stream": "merged_feats"
     }
   },
   "times_two_writer":
@@ -66,7 +103,7 @@
     "npz_file": "python_test_times_two_feats.npz",
     "inputs": 
     { 
-      "input_stream": "times_two_features",
+      "input_stream": "merged_feats",
       "conversation_state": "convstate"
     },
     "outputs": {}
@@ -81,7 +118,7 @@
     "inputs": 
     { 
       "input_stream": "norm_features",
-      "conversation_state": "convstate"
+      "conversation_state": "convstate_0"
     },
     "outputs": {}
   }

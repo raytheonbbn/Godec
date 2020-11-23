@@ -1,6 +1,6 @@
 #pragma once
 #include <godec/ChannelMessenger.h>
-#include "GodecMessages.h"
+#include <godec/GodecMessages.h>
 
 namespace Godec {
 

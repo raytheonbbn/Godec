@@ -226,6 +226,9 @@ class LoopProcessor {
     static std::string SlotSearchOutput;
     static std::string SlotAudioInfo;
 
+    static std::string SlotInputStreamPrefix;
+    static std::string SlotOutputStream;
+
     // Don't use the following
     void startDecodingLoop();
     void addToInputChannel(DecoderMessage_ptr msg);
@@ -242,6 +245,8 @@ class LoopProcessor {
 
   protected:
     void ProcessLoopMessages();
+    // added to handle ignoreDataTag
+    void ProcessIgnoreDataMessageBlock(const DecoderMessageBlock& msgBlock);
     // The main function to override. It gets called every time a new contiguous chunk of messages is available. The map's keys are the slot names
     virtual void ProcessMessage(const DecoderMessageBlock& msgBlock) = 0;
     // Only in rare circumstances should you override this
@@ -256,6 +261,11 @@ class LoopProcessor {
     bool mVerbose;
     bool mIsFinished;
     FILE* mLogPtr;
+    int mNumStreams;
+    static std::string SlotRoutingStream;
+    static std::string SlotToRouteStream;
+    static std::string SlotRoutedOutputStreamedPrefix;
+
 
     void connectInputs(unordered_map<std::string, std::set<uuid>> requiredSlots);
 

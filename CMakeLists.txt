@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.7)
 
+#set(VERBOSE)
+
 if (NOT (PLATFORM STREQUAL "Linux" OR PLATFORM STREQUAL "Android" OR PLATFORM STREQUAL "RaspberryPi" OR PLATFORM STREQUAL "Windows"))
   message(FATAL_ERROR "Please specify the PLATFORM variable <Linux, Android, RaspberryPi, Windows")
 endif()
@@ -207,7 +209,7 @@ install (TARGETS godec DESTINATION bin)
 install (TARGETS godec_dynamic DESTINATION bin)
 install (TARGETS godec_static DESTINATION lib)
 install (DIRECTORY "${PROJECT_SOURCE_DIR}/src/include" DESTINATION .)
-install (FILES "${PROJECT_SOURCE_DIR}/src/core_components/GodecMessages.h" DESTINATION include/godec/core_components)
+install (FILES "${PROJECT_SOURCE_DIR}/src/core_components/GodecMessages.h" DESTINATION include/godec)
 install (FILES "${PROJECT_SOURCE_DIR}/src/core_components/AccumCovariance.h" DESTINATION include/godec/core_components)
 install (FILES "${PROJECT_SOURCE_DIR}/src/core_components/cnpy.h" DESTINATION include/godec/core_components)
 install (FILES "${PROJECT_SOURCE_DIR}/tools/env.sh" DESTINATION .)
