@@ -915,6 +915,8 @@ bool ConversationStateDecoderMessage::sliceOut(uint64_t sliceTime, DecoderMessag
     } else {
         sliceMsg = ConversationStateDecoderMessage::create(sliceTime,
                    firstMsg->mUtteranceId, false, firstMsg->mConvoId, false);
+        auto ignoreData = firstMsg->getDescriptor("ignore_data");
+        (boost::const_pointer_cast<DecoderMessage>(sliceMsg))->addDescriptor("ignore_data", ignoreData);
         return true;
     }
 }
