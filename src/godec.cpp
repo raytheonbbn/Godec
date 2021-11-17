@@ -362,4 +362,41 @@ extern "C" {
     }
 
 
+
+}
+// ################################# C# bindings ##############################
+
+extern "C" {
+    __declspec(dllexport) void LoadGodec(char* jsonFilePath) {
+        //Get the json location here
+        const char *jsonPathNativeString = jsonFilePath;
+
+        // Transform override options into Godec required array
+        std::vector<std::pair<std::string, std::string>> ov;
+        // Push endpoints
+        json endpoints;
+        {
+            const char* endpointNameChar = "raw_audio_0";
+            const char* endpointNameCharConvstate = "convstate_input_0"; 
+            std::vector<std::string> inputs;
+            endpoints["!" + std::string(endpointNameChar) + ComponentGraph::API_ENDPOINT_SUFFIX] = ComponentGraph::CreateApiEndpoint(false, inputs, endpointNameChar);
+            endpoints["!" + std::string(endpointNameCharConvstate) + ComponentGraph::API_ENDPOINT_SUFFIX] = ComponentGraph::CreateApiEndpoint(false, inputs, endpointNameCharConvstate);
+        }
+
+        // Pull endpoints
+        {
+            const char* endpointNameCharCtm = "pull_endpoint_0_0";
+            const char* endpointNameCharKws = "pull_endpoint_0_1";
+            std::vector<std::string> inputs;
+            const char* streamNameCharCtm = "stream0_endpoint0_ctm";
+            const char* streamNameCharKws = "stream0_endpoint0_kws";
+            inputs.push_back(streamNameCharCtm);
+            inputs.push_back(streamNameCharKws);
+            endpoints["!" + std::string(endpointNameCharCtm) + ComponentGraph::API_ENDPOINT_SUFFIX] = ComponentGraph::CreateApiEndpoint(false, inputs, "");
+            endpoints["!" + std::string(endpointNameCharKws) + ComponentGraph::API_ENDPOINT_SUFFIX] = ComponentGraph::CreateApiEndpoint(false, inputs, "");
+        }
+        GlobalComponentGraphVals globals;
+        globals.put<bool>(LoopProcessor::QuietGodec, true);
+        globalGodecInstance = boost::shared_ptr<ComponentGraph>(new ComponentGraph(ComponentGraph::TOPLEVEL_ID, jsonPathNativeString, ComponentGraphConfig::FromOverrideList(ov), endpoints, &globals));
+    }
 }
