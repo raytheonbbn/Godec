@@ -366,8 +366,10 @@ extern "C" {
 }
 // ################################# C# bindings ##############################
 
+
 extern "C" {
-    __declspec(dllexport) void LoadGodec(char* jsonFilePath) {
+    __declspec(dllexport) void cLoadGodec(char* jsonFilePath, char** overrides, int num_overrides, char** pushEndpoints, int numPushEndpoints,
+                                            char** pullEndpoints, int numPullEndpoints, int numStreams, bool quiet) {
         //Get the json location here
         const char *jsonPathNativeString = jsonFilePath;
 
@@ -376,27 +378,65 @@ extern "C" {
         // Push endpoints
         json endpoints;
         {
-            const char* endpointNameChar = "raw_audio_0";
-            const char* endpointNameCharConvstate = "convstate_input_0"; 
-            std::vector<std::string> inputs;
-            endpoints["!" + std::string(endpointNameChar) + ComponentGraph::API_ENDPOINT_SUFFIX] = ComponentGraph::CreateApiEndpoint(false, inputs, endpointNameChar);
-            endpoints["!" + std::string(endpointNameCharConvstate) + ComponentGraph::API_ENDPOINT_SUFFIX] = ComponentGraph::CreateApiEndpoint(false, inputs, endpointNameCharConvstate);
+            for (int i = 0; i < numPushEndpoints; i++) {
+                const char* pushEndpoint = pushEndpoints[i];
+                std::vector<std::string> inputs;
+                endpoints["!" + std::string(pushEndpoint) + ComponentGraph::API_ENDPOINT_SUFFIX] = ComponentGraph::CreateApiEndpoint(false, inputs, pushEndpoint);
+            }
         }
-
         // Pull endpoints
         {
-            const char* endpointNameCharCtm = "pull_endpoint_0_0";
-            const char* endpointNameCharKws = "pull_endpoint_0_1";
             std::vector<std::string> inputs;
-            const char* streamNameCharCtm = "stream0_endpoint0_ctm";
-            const char* streamNameCharKws = "stream0_endpoint0_kws";
-            inputs.push_back(streamNameCharCtm);
-            inputs.push_back(streamNameCharKws);
-            endpoints["!" + std::string(endpointNameCharCtm) + ComponentGraph::API_ENDPOINT_SUFFIX] = ComponentGraph::CreateApiEndpoint(false, inputs, "");
-            endpoints["!" + std::string(endpointNameCharKws) + ComponentGraph::API_ENDPOINT_SUFFIX] = ComponentGraph::CreateApiEndpoint(false, inputs, "");
+            for (int i = 0; i < numPullEndpoints; i++) {
+                const char* pullEndpoint = pullEndpoints[i];
+                inputs.push_back(std::string(pullEndpoint));
+            }
+
+            for (int i = 0; i < numStreams; i++) {
+                std::string pullStream = "pull_endpoint_0_";
+                endpoints["!" + pullStream + std::to_string(i) + ComponentGraph::API_ENDPOINT_SUFFIX] = ComponentGraph::CreateApiEndpoint(false, inputs, "");
+            }
+
         }
         GlobalComponentGraphVals globals;
-        globals.put<bool>(LoopProcessor::QuietGodec, true);
+        globals.put<bool>(LoopProcessor::QuietGodec, quiet);
         globalGodecInstance = boost::shared_ptr<ComponentGraph>(new ComponentGraph(ComponentGraph::TOPLEVEL_ID, jsonPathNativeString, ComponentGraphConfig::FromOverrideList(ov), endpoints, &globals));
+    }
+
+    __declspec(dllexport) void cPushMessage(_DECODERMESSAGESTRUCT msg, char* endpointName) {
+        DecoderMessage_ptr msg_ptr = globalGodecInstance->CSharpToDecoderMsg(msg);
+        globalGodecInstance->PushMessage(ComponentGraph::TOPLEVEL_ID + ComponentGraph::TREE_LEVEL_SEPARATOR + std::string(endpointName), msg_ptr);
+    }
+
+    __declspec(dllexport) void cPullMessage(char* cEndpointName, int maxTimeout, _DECODERMESSAGESTRUCT** messages, int* length) {
+
+        const char* endpointName = cEndpointName;
+        unordered_map<std::string, DecoderMessage_ptr> map;
+        ChannelReturnResult res = globalGodecInstance->PullMessage(ComponentGraph::TOPLEVEL_ID + ComponentGraph::TREE_LEVEL_SEPARATOR + std::string(endpointName), maxTimeout, map);
+        if (res == ChannelClosed) {
+            return;
+        }
+        if (res == ChannelTimeout) {
+            return;
+        }
+
+        _DECODERMESSAGESTRUCT* resultMessages = new _DECODERMESSAGESTRUCT[map.size()];
+        int index = 0;
+
+        for (auto mapIt = map.begin(); mapIt != map.end(); mapIt++) {
+            std::string slot = mapIt->first;
+            auto msg = boost::const_pointer_cast<DecoderMessage>(mapIt->second);
+            _DECODERMESSAGESTRUCT cMsg = {
+                msg->toCSHARP(),
+                const_cast<char*>(slot.c_str())
+            };
+            resultMessages[index] = cMsg;
+            index++;
+        }
+
+        *length = static_cast<int>(map.size());
+        auto size = (*length) * sizeof(_DECODERMESSAGESTRUCT);
+        messages = static_cast<_DECODERMESSAGESTRUCT*>(malloc(size));
+        memcpy(messages, resultMessages, size);
     }
 }

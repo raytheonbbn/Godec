@@ -142,6 +142,24 @@ extern "C" {
     }
 #endif
 
+    __declspec(dllexport) DecoderMessage_ptr GodecCsharpToMsg(_DECODERMESSAGESTRUCT cMsg) {
+        DecoderMessage_ptr outMsg = nullptr;
+        std::string type = cMsg._msgType;
+        if (type == "AudioDecoderMessage") {
+            _AUDIODECODERMESSAGESTRUCT msg = *(static_cast<_AUDIODECODERMESSAGESTRUCT*>(cMsg._msg));
+            outMsg = AudioDecoderMessage::fromCSharp(msg);
+        }
+        else if (type == "ConversationStateDecoderMessage") {
+            _CONVODECODERMESSAGESTRUCT msg = *(static_cast<_CONVODECODERMESSAGESTRUCT*>(cMsg._msg));
+            outMsg = ConversationStateDecoderMessage::fromCSharp(msg);
+        }
+        else if (type == "BinaryDecoderMessage") {
+            _BINARYDECODERMESSAGESTRUCT msg = *(static_cast<_BINARYDECODERMESSAGESTRUCT*>(cMsg._msg));
+            outMsg = BinaryDecoderMessage::fromCSharp(msg);
+        }
+        return outMsg;
+    }
+
 }
 
 }

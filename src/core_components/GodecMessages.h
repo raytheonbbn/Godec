@@ -52,11 +52,13 @@ class AudioDecoderMessage : public DecoderMessage {
     bool sliceOut(uint64_t sliceTime, DecoderMessage_ptr& sliceMsg, std::vector<DecoderMessage_ptr>& msgList, int64_t streamStartOffset, bool verbose);
     void shiftInTime(int64_t deltaT);
     jobject toJNI(JNIEnv* env);
+    _DECODERMESSAGESTRUCT* toCSHARP();
     static DecoderMessage_ptr fromJNI(JNIEnv* env, jobject jMsg);
 #ifndef ANDROID
     PyObject* toPython();
     static DecoderMessage_ptr fromPython(PyObject* pMsg);
 #endif
+    static DecoderMessage_ptr fromCSharp(_AUDIODECODERMESSAGESTRUCT cMsg);
 
     uuid getUUID() const  { return UUID_AudioDecoderMessage; }
     static uuid getUUIDStatic() { return UUID_AudioDecoderMessage; }
@@ -86,6 +88,7 @@ class AudioInfoDecoderMessage : public DecoderMessage {
     bool sliceOut(uint64_t sliceTime, DecoderMessage_ptr& sliceMsg, std::vector<DecoderMessage_ptr>& msgList, int64_t streamStartOffset, bool verbose);
     void shiftInTime(int64_t deltaT);
     jobject toJNI(JNIEnv* env);
+    _DECODERMESSAGESTRUCT* toCSHARP();
     static DecoderMessage_ptr fromJNI(JNIEnv* env, jobject jMsg);
 #ifndef ANDROID
     PyObject* toPython();
@@ -121,6 +124,7 @@ class FeaturesDecoderMessage : public DecoderMessage {
     bool sliceOut(uint64_t sliceTime, DecoderMessage_ptr& sliceMsg, std::vector<DecoderMessage_ptr>& msgList, int64_t streamStartOffset, bool verbose);
     void shiftInTime(int64_t deltaT);
     jobject toJNI(JNIEnv* env);
+    _DECODERMESSAGESTRUCT* toCSHARP();
     static DecoderMessage_ptr fromJNI(JNIEnv* env, jobject jMsg);
 #ifndef ANDROID
     PyObject* toPython();
@@ -155,6 +159,7 @@ class MatrixDecoderMessage : public DecoderMessage {
     bool sliceOut(uint64_t sliceTime, DecoderMessage_ptr& sliceMsg, std::vector<DecoderMessage_ptr>& msgList, int64_t streamStartOffset, bool verbose);
     void shiftInTime(int64_t deltaT);
     jobject toJNI(JNIEnv* env);
+    _DECODERMESSAGESTRUCT* toCSHARP();
 #ifndef ANDROID
     PyObject* toPython();
     static DecoderMessage_ptr fromPython(PyObject* pMsg);
@@ -188,6 +193,7 @@ class NbestDecoderMessage : public DecoderMessage {
     bool sliceOut(uint64_t sliceTime, DecoderMessage_ptr& sliceMsg, std::vector<DecoderMessage_ptr>& msgList, int64_t streamStartOffset, bool verbose);
     void shiftInTime(int64_t deltaT);
     jobject toJNI(JNIEnv* env);
+    _DECODERMESSAGESTRUCT* toCSHARP();
     static DecoderMessage_ptr fromJNI(JNIEnv* env, jobject jMsg);
 #ifndef ANDROID
     PyObject* toPython();
@@ -225,11 +231,13 @@ class ConversationStateDecoderMessage : public DecoderMessage {
     bool sliceOut(uint64_t sliceTime, DecoderMessage_ptr& sliceMsg, std::vector<DecoderMessage_ptr>& msgList, int64_t streamStartOffset, bool verbose);
     void shiftInTime(int64_t deltaT);
     jobject toJNI(JNIEnv* env);
+    _DECODERMESSAGESTRUCT* toCSHARP();
     static DecoderMessage_ptr fromJNI(JNIEnv* env, jobject jMsg);
 #ifndef ANDROID
     PyObject* toPython();
     static DecoderMessage_ptr fromPython(PyObject* pMsg);
 #endif
+    static DecoderMessage_ptr fromCSharp(_CONVODECODERMESSAGESTRUCT cMsg);
 
     uuid getUUID() const  { return UUID_ConversationStateDecoderMessage; }
     static uuid getUUIDStatic() { return UUID_ConversationStateDecoderMessage; }
@@ -260,11 +268,13 @@ class BinaryDecoderMessage : public DecoderMessage {
     bool sliceOut(uint64_t sliceTime, DecoderMessage_ptr& sliceMsg, std::vector<DecoderMessage_ptr>& msgList, int64_t streamStartOffset, bool verbose);
     void shiftInTime(int64_t deltaT);
     jobject toJNI(JNIEnv* env);
+    _DECODERMESSAGESTRUCT* toCSHARP();
     static DecoderMessage_ptr fromJNI(JNIEnv* env, jobject jMsg);
 #ifndef ANDROID
     PyObject* toPython();
     static DecoderMessage_ptr fromPython(PyObject* pMsg);
 #endif
+    static DecoderMessage_ptr fromCSharp(_BINARYDECODERMESSAGESTRUCT cMsg);
 
     uuid getUUID() const { return UUID_BinaryDecoderMessage; }
     static uuid getUUIDStatic() { return UUID_BinaryDecoderMessage; }
@@ -294,6 +304,9 @@ class JsonDecoderMessage : public DecoderMessage {
     DecoderMessage_ptr clone() const override;
 
     jobject toJNI(JNIEnv *env) override;
+
+    _DECODERMESSAGESTRUCT* toCSHARP() override;
+
     static DecoderMessage_ptr fromJNI(JNIEnv* env, jobject jMsg);
 #ifndef ANDROID
     PyObject* toPython();

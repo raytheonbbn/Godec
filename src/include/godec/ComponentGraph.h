@@ -14,6 +14,8 @@ typedef DecoderMessage_ptr (*GodecJNIToMsgFunc)(JNIEnv* env, jobject jMsg);
 #ifndef ANDROID
 typedef DecoderMessage_ptr (*GodecPythonToMsgFunc)(PyObject* pMsg);
 #endif
+typedef DecoderMessage_ptr(*GodecCsharpToMsgFunc)(_DECODERMESSAGESTRUCT cMsg);
+
 typedef
 #ifdef _MSC_VER
 HMODULE
@@ -44,6 +46,7 @@ class ComponentGraph {
     static std::string TREE_LEVEL_SEPARATOR;
     static std::string GetIndentationString(std::string id);
     DecoderMessage_ptr JNIToDecoderMsg(JNIEnv *env, jobject jMsg);
+    DecoderMessage_ptr CSharpToDecoderMsg(_DECODERMESSAGESTRUCT cMsg);
 #ifndef ANDROID
     DecoderMessage_ptr PythonToDecoderMsg(PyObject *pMsg);
 #endif

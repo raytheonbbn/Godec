@@ -23,6 +23,52 @@
 
 namespace Godec {
 
+#pragma region CSharp Message Structs
+    typedef struct _CONVODECODERMESSAGESTRUCT
+    {
+        long _time;
+        char* _utteranceId;
+        bool _isLastChunkInUtt;
+        char* _convoId;
+        bool _isLastChunkInConvo;
+        char* _descriptorString;
+    } CONVODECODERMESSAGESTRUCT, * LP_CONVODECODERMESSAGESTRUCT;
+
+    typedef struct _AUDIODECODERMESSAGESTRUCT
+    {
+        long _time;
+        float* _audioData;
+        unsigned int _numSamples;
+        float _sampleRate;
+        float _ticksPerSample;
+        char* _descriptorString;
+    } AUDIODECODERMESSAGESTRUCT, * LP_AUDIODECODERMESSAGESTRUCT;
+
+    typedef struct _BINARYDECODERMESSAGESTRUCT
+    {
+        long _time;
+        uint8_t* _data;
+        int _dataSize;
+        char* _format;
+        char* _descriptorString;
+    } BINARYDECODERMESSAGESTRUCT, * LP_BINARYDECODERMESSAGESTRUCT;
+
+    typedef struct _JSONDECODERMESSAGESTRUCT
+    {
+        long _time;
+        char* _json;
+        char* _descriptorString;
+    } JSONDECODERMESSAGESTRUCT, * LP_JSONDECODERMESSAGESTRUCT;
+    
+    typedef struct _DECODERMESSAGESTRUCT
+    {
+        //CHANGE THIS TO SOMETHING 
+        void* _msg;
+        char* _msgType;
+
+    } DECODERMESSAGESTRUCT, * LP_DECODERMESSAGESTRUCT;
+#pragma endregion
+
 class ComponentGraph;
 // The base message that all messages need to inherit from
 class DecoderMessage {
@@ -43,6 +89,10 @@ class DecoderMessage {
     // on actually passing it out, you can just define a dummy with a KALDI_ERR in it
     virtual jobject toJNI(JNIEnv* env) = 0;
 
+    // Convert the C++ message contents into a csharp struct for PInvoke calls. The method needs to be defined, but unless you plan
+    // on actually passing it out, you can just define a dummy with a GODEC_ERR in it
+    virtual _DECODERMESSAGESTRUCT* toCSHARP() = 0;
+
 #ifndef ANDROID
     // Convert the C++ message contents into a Python object. The method needs to be defined, but unless you plan
     // on actually passing it out, you can just define a dummy with a KALDI_ERR in it
@@ -55,6 +105,7 @@ class DecoderMessage {
     //
     // static DecoderMessage_ptr fromJNI(JNIEnv* env, jobject jMsg) = 0;
     // static DecoderMessage_ptr fromPython(PyObject* pMsg) = 0;
+    // static DecoderMessage_ptr fromCSharp(_DECODERMESSAGESTRUCT cMsg) = 0;
 
     // Static functions for extracting values from JNI and Python
     static void JNIGetDecoderMessageVals(JNIEnv* env, jobject& jMsg, std::string& tag, uint64_t& time, std::string& descriptor);

@@ -341,6 +341,23 @@ DecoderMessage_ptr ComponentGraph::JNIToDecoderMsg(JNIEnv *env, jobject jMsg) {
     return nullptr;
 }
 
+DecoderMessage_ptr ComponentGraph::CSharpToDecoderMsg(_DECODERMESSAGESTRUCT cMsg) {
+    for (auto it = mGlobalDllName2Handle->begin(); it != mGlobalDllName2Handle->end(); it++) {
+        std::string dllName = it->first;
+        DllPtr dllHandle = it->second;
+#ifdef _MSC_VER
+        GodecCsharpToMsgFunc cSharpToMsgFunc = (GodecCsharpToMsgFunc)GetProcAddress(dllHandle, "GodecCsharpToMsg");
+#else
+        GodecCsharpToMsgFunc cSharpToMsgFunc = (GodecCsharpToMsgFunc)dlsym(dllHandle, "GodecCsharpToMsg");
+#endif
+        if (cSharpToMsgFunc == NULL) GODEC_ERR << "Could not get GodecCsharpToMsg function from DLL " << dllName;
+        DecoderMessage_ptr newMsg = cSharpToMsgFunc(cMsg);
+        if (newMsg != NULL) return newMsg;
+    }
+    GODEC_ERR << "No library could convert Java message to C++";
+    return nullptr;
+}
+
 #ifndef ANDROID
 DecoderMessage_ptr ComponentGraph::PythonToDecoderMsg(PyObject* pMsg) {
     for(auto it = mGlobalDllName2Handle->begin(); it != mGlobalDllName2Handle->end(); it++) {
@@ -359,5 +376,4 @@ DecoderMessage_ptr ComponentGraph::PythonToDecoderMsg(PyObject* pMsg) {
     return nullptr;
 }
 #endif
-
 }

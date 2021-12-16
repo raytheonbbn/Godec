@@ -141,6 +141,11 @@ jobject AudioDecoderMessage::toJNI(JNIEnv* env) {
     return jAudioMsg;
 };
 
+_DECODERMESSAGESTRUCT* AudioDecoderMessage::toCSHARP() {
+    GODEC_ERR << "AudioDecoderMessage::toCSHARP not implemented yet!";
+    return NULL;
+}
+
 DecoderMessage_ptr AudioDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
     std::string tag;
     uint64_t time;
@@ -166,6 +171,13 @@ DecoderMessage_ptr AudioDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
     env->ReleaseFloatArrayElements(*jAudioFloatArray, audioData, 0);
     return outMsg;
 }
+DecoderMessage_ptr AudioDecoderMessage::fromCSharp(_AUDIODECODERMESSAGESTRUCT cMsg) {
+    DecoderMessage_ptr outMsg = AudioDecoderMessage::create(cMsg._time, cMsg._audioData, cMsg._numSamples, cMsg._numSamples, cMsg._ticksPerSample);
+    std::string descriptorString = cMsg._descriptorString;
+    (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(descriptorString);
+    return outMsg;
+}
+
 
 #ifndef ANDROID
 PyObject* AudioDecoderMessage::toPython() {
@@ -391,6 +403,11 @@ jobject FeaturesDecoderMessage::toJNI(JNIEnv* env) {
     return jFeatMsg;
 };
 
+_DECODERMESSAGESTRUCT* FeaturesDecoderMessage::toCSHARP() {
+    GODEC_ERR << "FeaturesDecoderMessage::toCSHARP not implemented yet!";
+    return NULL;
+}
+
 DecoderMessage_ptr FeaturesDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
     std::string tag;
     uint64_t time;
@@ -574,6 +591,11 @@ jobject MatrixDecoderMessage::toJNI(JNIEnv* env) {
     return NULL;
 };
 
+_DECODERMESSAGESTRUCT* MatrixDecoderMessage::toCSHARP() {
+    GODEC_ERR << "MatrixDecoderMessage::toCSHARP not implemented yet!";
+    return NULL;
+}
+
 #ifndef ANDROID
 PyObject* MatrixDecoderMessage::toPython() {
     GODEC_ERR << "MatrixDecoderMessage::toPython not implemented yet";
@@ -694,6 +716,11 @@ jobject NbestDecoderMessage::toJNI(JNIEnv* env) {
 
     return env->PopLocalFrame(mainObject);
 };
+
+_DECODERMESSAGESTRUCT* NbestDecoderMessage::toCSHARP() {
+    GODEC_ERR << "NbestDecoderMessage::toCSHARP not implemented yet!";
+    return NULL;
+}
 
 void GetNbestEntryVals(JNIEnv* env, jobject jEntryObj, std::vector<std::string>& text, std::vector<uint64_t>& words, std::vector<uint64_t>& alignment, std::vector<float>& confidences) {
     jclass NbestEntryClass = env->FindClass("com/bbn/godec/NbestEntry");
@@ -834,6 +861,11 @@ jobject AudioInfoDecoderMessage::toJNI(JNIEnv* env) {
     return NULL;
 };
 
+_DECODERMESSAGESTRUCT* AudioInfoDecoderMessage::toCSHARP() {
+    GODEC_ERR << "AudioInfoDecoderMessage::toCSHARP not implemented yet!";
+    return NULL;
+}
+
 DecoderMessage_ptr AudioInfoDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
     GODEC_ERR << "AudioInfoDecoderMessage::fromJNI not implemented yet!";
     return NULL;
@@ -943,6 +975,11 @@ jobject ConversationStateDecoderMessage::toJNI(JNIEnv* env) {
     return env->PopLocalFrame(jConvoMsg);
 };
 
+_DECODERMESSAGESTRUCT* ConversationStateDecoderMessage::toCSHARP() {
+    GODEC_ERR << "ConversationStateDecoderMessage::toCSHARP not implemented yet!";
+    return NULL;
+}
+
 DecoderMessage_ptr ConversationStateDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
     std::string tag;
     uint64_t time;
@@ -1018,6 +1055,13 @@ DecoderMessage_ptr ConversationStateDecoderMessage::fromPython(PyObject* pMsg) {
 }
 #endif
 
+DecoderMessage_ptr ConversationStateDecoderMessage::fromCSharp(_CONVODECODERMESSAGESTRUCT cMsg) {
+    DecoderMessage_ptr outMsg = ConversationStateDecoderMessage::create(cMsg._time, cMsg._utteranceId, cMsg._isLastChunkInUtt, cMsg._convoId, cMsg._isLastChunkInConvo);
+    std::string descriptorString = cMsg._descriptorString;
+    (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(descriptorString);
+    return outMsg;
+}
+
 //############ Raw text message ###################
 
 std::string BinaryDecoderMessage::describeThyself() const {
@@ -1076,6 +1120,11 @@ jobject BinaryDecoderMessage::toJNI(JNIEnv* env) {
     return jAudioMsg;
 };
 
+_DECODERMESSAGESTRUCT* BinaryDecoderMessage::toCSHARP() {
+    GODEC_ERR << "BinaryDecoderMessage::toCSHARP not implemented yet!";
+    return NULL;
+}
+
 DecoderMessage_ptr BinaryDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {
     std::string tag;
     uint64_t time;
@@ -1114,6 +1163,15 @@ DecoderMessage_ptr BinaryDecoderMessage::fromPython(PyObject* pMsg) {
 }
 #endif
 
+DecoderMessage_ptr BinaryDecoderMessage::fromCSharp(_BINARYDECODERMESSAGESTRUCT cMsg) {
+    std::vector<unsigned char> dataVec(cMsg._dataSize);
+    memcpy(&dataVec[0], cMsg._data, cMsg._dataSize);
+    DecoderMessage_ptr outMsg = BinaryDecoderMessage::create(cMsg._time, dataVec, cMsg._format);
+    std::string descriptorString = cMsg._descriptorString;
+    (boost::const_pointer_cast<DecoderMessage>(outMsg))->setFullDescriptorString(descriptorString);
+    return outMsg;
+}
+
 std::string JsonDecoderMessage::describeThyself() const {
     std::stringstream ss;
     ss << DecoderMessage::describeThyself();
@@ -1135,6 +1193,24 @@ jobject JsonDecoderMessage::toJNI(JNIEnv *env) {
     jstring jJsonString = env->NewStringUTF(mJson.dump().c_str());
     jobject retObj = env->NewObject(JsonDecoderMessageClass, msgInit, jTag, time, jJsonString);
     return env->PopLocalFrame(retObj);
+}
+
+_DECODERMESSAGESTRUCT* JsonDecoderMessage::toCSHARP() {
+    std::string tag = getTag();
+    long time = getTime();
+    char* jsonString = const_cast<char*>(mJson.dump().c_str());
+    char* descriptorString = const_cast<char*>(getFullDescriptorString().c_str());
+    _JSONDECODERMESSAGESTRUCT msg = {
+        time,               //long _time;
+        jsonString,         //char* _json;
+        descriptorString   //char* _descriptorString;
+    };
+
+    _DECODERMESSAGESTRUCT cMsg = {
+        &msg,                   //void* _msg;
+        "JsonDecoderMessage"    //char* _msgType;
+    };
+    return &cMsg;
 }
 
 DecoderMessage_ptr JsonDecoderMessage::fromJNI(JNIEnv* env, jobject jMsg) {

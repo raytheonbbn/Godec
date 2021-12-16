@@ -21,7 +21,7 @@ endif()
 project(godec)
 
 if (NOT DEFINED CMAKE_BUILD_TYPE) 
- set(CMAKE_BUILD_TYPE Release) 
+ set(CMAKE_BUILD_TYPE Debug) 
 endif() 
 
 set(GCC_MINIMAL_VERSION 4.9.0)
@@ -97,7 +97,7 @@ elseif(PLATFORM STREQUAL "RaspberryPi")
 elseif(PLATFORM STREQUAL "Linux")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-ignored-attributes -Wno-int-in-bool-context -msse -msse2 -Wno-psabi")
 elseif(PLATFORM STREQUAL "Windows")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17 /MD")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17 /MDd /ZI")
 endif()
 
 add_definitions(
@@ -164,7 +164,7 @@ set(SOURCE_FILES
 link_directories(${JAVA_LINKER_DIR})
 link_directories(${ALSA_LINKER_DIR})
 if (PYTHON_LIBRARIES)
-  get_filename_component(PYTHON_LIBRARY_DIR ${PYTHON_LIBRARIES} DIRECTORY)
+  #get_filename_component(PYTHON_LIBRARY_DIR ${PYTHON_LIBRARIES} DIRECTORY)
 endif()
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${Boost_LIBRARY_DIRS};${PYTHON_LIBRARY_DIR}")
 
