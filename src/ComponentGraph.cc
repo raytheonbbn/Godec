@@ -86,6 +86,19 @@ ComponentGraph::ComponentGraph(std::string prefix, std::string inFile, Component
         subConfig->AddSubtree(overrideTree->GetSubtree(v.key(), true)->GetPtree());
         lp = LoadComponent(componentType, componentName, subConfig);
 
+        //Adds all the libraries recursively to the top level ComponentGraph.
+        //This is needed if one wants to push a custom Message from
+        //a library not specified in the top level JSON from JAVA or PYTHON.
+        if (componentType == "SubModule") {
+            auto subModuleComponent = (Submodule*)lp;
+            for (auto dllNameIt = subModuleComponent->mCgraph->mGlobalDllName2Handle->begin();
+                    dllNameIt != subModuleComponent->mCgraph->mGlobalDllName2Handle->end(); dllNameIt++) {
+                std::string dllName = dllNameIt->first;
+            }
+            mGlobalDllName2Handle->insert(subModuleComponent->mCgraph->mGlobalDllName2Handle->begin(),
+                    subModuleComponent->mCgraph->mGlobalDllName2Handle->end());
+        }
+
         subConfig->ParameterCheck();
         mComponents[componentName] = boost::shared_ptr<LoopProcessor>(lp);
     }
