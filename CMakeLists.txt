@@ -87,7 +87,7 @@ if (NOT PLATFORM STREQUAL "Android")
 endif()
 
 if (PLATFORM STREQUAL "Android")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DANDROID -marm -march=armv7-a -mfpu=neon -Wno-narrowing -fexceptions -frtti -Wno-deprecated-register -Wno-redeclared-class-member")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DANDROID -march=armv8-a -mfpu=neon-fp-armv8 -Wno-narrowing -fexceptions -frtti -Wno-deprecated-register -Wno-redeclared-class-member")
   list(APPEND LINKER_LIBS -lOpenSLES)
 elseif(PLATFORM STREQUAL "RaspberryPi")
   if (NOT DEFINED RASPBERRY_PI_OPT_FLAGS)
