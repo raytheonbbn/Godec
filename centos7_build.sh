@@ -3,7 +3,7 @@ cd $HOME
 yum -y groupinstall 'Development Tools' 
 yum -y install centos-release-scl 
 yum -y install devtoolset-7-gcc\* 
-yum -y install libtool wget alsa-lib alsa-lib-devel java-1.8.0-openjdk java-1.8.0-openjdk-devel zlib-devel maven which
+yum -y install libtool wget alsa-lib alsa-lib-devel zlib-devel maven which
 yum -t install java-11-openjdk-devel
 curl -o Miniconda3.7.3.sh https://repo.anaconda.com/miniconda/Miniconda3-4.6.14-Linux-x86_64.sh &&bash Miniconda3.7.3.sh -b -p /conda
 export PATH=/conda/bin:$PATH
