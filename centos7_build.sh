@@ -11,14 +11,14 @@ conda install -y numpy
 export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
 export PATH=$JAVA_HOME/bin:$PATH
 export LD_LIBRARY_PATH=$JAVA_HOME/lib/server/:$LD_LIBRARY_PATH
-source /opt/rh/devtoolset-7/enable 
-wget -q https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.gz 
-tar xf boost_1_68_0.tar.gz -C "$HOME" 
-cd $HOME/boost_1_68_0 
-./bootstrap.sh 
-./b2 clean 
-./b2 -j8 -d0 cxxstd=17 cxxflags=-fPIC cflags=-fPIC --without-python link=static threading=multi threadapi=pthread define=BOOST_MATH_DISABLE_FLOAT128 
-export BOOST_ROOT=$HOME/boost_1_68_0 
+source /opt/rh/devtoolset-7/enable
+curl -L -o boost_1_75_0.tar.gz https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz
+tar xf boost_1_75_0.tar.gz -C "$HOME"
+cd boost_1_75_0
+./bootstrap.sh
+./b2 clean
+./b2 -j8 -d0 cxxstd=17 cxxflags=-fPIC cflags=-fPIC --without-python link=static threading=multi threadapi=pthread define=BOOST_MATH_DISABLE_FLOAT128
+export BOOST_ROOT=$HOME/boost_1_75_0
 wget -q http://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz
 tar xf eigen-3.3.7.tar.gz -C $HOME
 export EIGEN_ROOT=$HOME/eigen-3.3.7 
