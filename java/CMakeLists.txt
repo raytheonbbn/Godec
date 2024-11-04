@@ -20,4 +20,4 @@ add_custom_command(
 
 install(FILES "${PROJECT_SOURCE_DIR}/java/godec/target/godec-1.0-SNAPSHOT.jar" DESTINATION java)
 install(FILES "${PROJECT_SOURCE_DIR}/java/pom.xml" DESTINATION java)
-install(FILES "${PROJECT_SOURCE_DIR}/java/godec/target/appassembler/repo/com/google/code/gson/gson/2.6.1/gson-2.6.1.jar" DESTINATION java)
+install(FILES "${PROJECT_SOURCE_DIR}/java/godec/target/appassembler/repo/com/google/code/gson/gson/2.8.9/gson-2.8.9.jar" DESTINATION java)
